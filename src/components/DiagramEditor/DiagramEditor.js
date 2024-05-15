@@ -21,60 +21,56 @@ export default function App(props) {
     const [colorPickerType, setColorPickerType] = React.useState(null);
     const [graph, setGraph] = React.useState(null);
 
+    // Define event handlers using useCallback to stabilize their identities
+    const onChange = React.useCallback((evt) => {
+        if (props.onChange) {
+            props.onChange(evt);
+        }
+    }, [props]);
+
+    const onSelected = React.useCallback((evt) => {
+        if (props.onSelected) {
+            props.onSelected(evt);
+        }
+        setSelected(evt.cells[0]);
+        setColorPickerVisible(false);
+    }, [props, setSelected, setColorPickerVisible]);
+
+    const onElementAdd = React.useCallback((evt) => {
+        if (props.onElementAdd) {
+            props.onElementAdd(evt);
+        }
+    }, [props]);
+
+    const onDragEnd = React.useCallback((evt) => {
+        if (props.onDragEnd) {
+            props.onDragEnd(evt);
+        }
+    }, [props]);
+
     React.useEffect(() => {
         if (!graph) {
             mxEvent.disableContextMenu(containerRef.current);
             setGraph(new mxGraph(containerRef.current));
         }
-        // Adds cells to the model in a single step
         if (graph) {
             console.log(graph)
-            // setInitialConfiguration(graph, toolbarRef);
             setInitialConfiguration(graph, toolbarRef);
             configureKeyBindings(graph);
 
-            // Updates the display
             graph.getModel().endUpdate();
             graph.getModel().addListener(mxEvent.CHANGE, onChange);
             graph.getSelectionModel().addListener(mxEvent.CHANGE, onSelected);
             graph.getModel().addListener(mxEvent.ADD, onElementAdd);
             graph.getModel().addListener(mxEvent.MOVE_END, onDragEnd);
         }
-    }, [graph]);
+    }, [graph, onChange, onSelected, onElementAdd, onDragEnd]); // Dependencies are now stable
 
     React.useEffect(() => {
         if (graph) {
-            // NOTE: Print the current graph cells
             console.log(graph.model.cells)
         }
     })
-
-    const onChange = evt => {
-        if (props.onChange) {
-            props.onChange(evt);
-        }
-    };
-
-    const onSelected = evt => {
-        if (props.onSelected) {
-            props.onSelected(evt);
-        }
-        setSelected(evt.cells[0]);
-        setColorPickerVisible(false);
-        // console.log(mxVertexHandler.getSelectionColor());
-    };
-
-    const onElementAdd = evt => {
-        if (props.onElementAdd) {
-            props.onElementAdd(evt);
-        }
-    };
-
-    const onDragEnd = evt => {
-        if (props.onDragEnd) {
-            props.onDragEnd(evt);
-        }
-    };
 
     const updateCellColor = (type, color) => {
         graph.setCellStyles(type, color.hex);
