@@ -14,7 +14,7 @@ const {
 
 export default function initToolbar(graph, tbContainer) {
     // Creates new toolbar without event processing
-    var toolbar = new mxToolbar(tbContainer);
+    const toolbar = new mxToolbar(tbContainer);
     toolbar.enabled = false;
 
     // Workaround for Internet Explorer ignoring certain styles
@@ -29,24 +29,24 @@ export default function initToolbar(graph, tbContainer) {
     // Allow multiple edges between two vertices
     graph.setMultigraph(false);
 
-    var addVertex = (icon, w, h, style, value = null) => {
-        var vertex = new mxCell(null, new mxGeometry(0, 0, w, h), style);
+    const addVertex = (icon, w, h, style, value = null) => {
+        const vertex = new mxCell(null, new mxGeometry(0, 0, w, h), style);
         if (value) {
             vertex.value = value;
         }
         vertex.setVertex(true);
 
-        var img = addToolbarItem(graph, toolbar, vertex, icon);
+        const img = addToolbarItem(graph, toolbar, vertex, icon);
         img.enabled = true;
 
         graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
-            var tmp = graph.isSelectionEmpty();
+            const tmp = graph.isSelectionEmpty();
             mxUtils.setOpacity(img, tmp ? 100 : 20);
             img.enabled = tmp;
         });
     };
 
-    var baseStyle = { ...graph.getStylesheet().getDefaultVertexStyle() };
+    const baseStyle = { ...graph.getStylesheet().getDefaultVertexStyle() };
 
     addVertex(
         "images/rectangle.gif",

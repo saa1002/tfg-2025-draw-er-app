@@ -1,8 +1,8 @@
-import { mxUndoManager, mxEvent, mxKeyHandler } from "mxgraph-js";
+import { mxEvent, mxKeyHandler, mxUndoManager } from "mxgraph-js";
 
 export default function configureKeyBindings(graph) {
-    var undoManager = new mxUndoManager();
-    var listener = (sender, evt) => {
+    const undoManager = new mxUndoManager();
+    const listener = (sender, evt) => {
         undoManager.undoableEditHappened(evt.getProperty("edit"));
     };
     graph.getModel().addListener(mxEvent.UNDO, listener);

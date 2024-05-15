@@ -3,9 +3,9 @@ import "./styles/diagramEditor.css";
 import { default as MxGraph } from "mxgraph";
 import { CompactPicker } from "react-color";
 import {
+    configureKeyBindings,
     getStyleByKey,
     setInitialConfiguration,
-    configureKeyBindings,
 } from "./utils";
 
 const { mxGraph, mxEvent } = MxGraph();
@@ -36,7 +36,7 @@ export default function App(props) {
             setSelected(evt.cells[0]);
             setColorPickerVisible(false);
         },
-        [props, setSelected, setColorPickerVisible],
+        [props],
     );
 
     const onElementAdd = React.useCallback(
@@ -93,12 +93,14 @@ export default function App(props) {
         selected && (
             <React.Fragment>
                 <button
+                    type="button"
                     className="button-toolbar-action"
                     onClick={pushCellsBack(true)}
                 >
                     Move back
                 </button>
                 <button
+                    type="button"
                     className="button-toolbar-action"
                     onClick={pushCellsBack(false)}
                 >
@@ -113,6 +115,7 @@ export default function App(props) {
         }
         return (
             <button
+                type="button"
                 className={"button-toolbar-action"}
                 onClick={() => {
                     setColorPickerVisible(!colorPickerVisible);

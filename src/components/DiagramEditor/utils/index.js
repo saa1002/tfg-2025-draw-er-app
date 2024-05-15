@@ -1,9 +1,9 @@
 import addToolbarItem from "./addToolbarItem";
-import initToolbar from "./initToolbar";
+import configureKeyBindings from "./configureKeyBindings";
 import getStyleByKey from "./getStyleByKey";
 import getStyleStringByObj from "./getStyleStringByObj";
+import initToolbar from "./initToolbar";
 import setInitialConfiguration from "./setInitialConfiguration";
-import configureKeyBindings from "./configureKeyBindings";
 
 export {
     addToolbarItem,

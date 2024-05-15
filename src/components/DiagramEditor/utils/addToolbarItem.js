@@ -6,10 +6,10 @@ export default function addToolbarItem(graph, toolbar, prototype, image) {
     // Function that is executed when the image is dropped on
     // the graph. The cell argument points to the cell under
     // the mousepointer if there is one.
-    var funct = (graph, evt, cell, x, y) => {
+    const funct = (graph, evt, cell, x, y) => {
         graph.stopEditing(false);
 
-        var vertex = graph.getModel().cloneCell(prototype);
+        const vertex = graph.getModel().cloneCell(prototype);
         vertex.geometry.x = x;
         vertex.geometry.y = y;
 
@@ -18,8 +18,8 @@ export default function addToolbarItem(graph, toolbar, prototype, image) {
     };
 
     // Creates the image which is used as the drag icon (preview)
-    var img = toolbar.addMode(null, image, function (evt, cell) {
-        var pt = this.graph.getPointForEvent(evt);
+    const img = toolbar.addMode(null, image, function (evt, cell) {
+        const pt = this.graph.getPointForEvent(evt);
         funct(graph, evt, cell, pt.x, pt.y);
     });
 
