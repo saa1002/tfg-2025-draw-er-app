@@ -30,6 +30,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@biomejs/biome": "1.7.3"
+    "@biomejs/biome": "1.7.3",
+    "lefthook": "^1.6.11"
   }
 }
