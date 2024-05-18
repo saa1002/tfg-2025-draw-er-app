@@ -8,6 +8,7 @@ test('add entities to the canvas and change name', async ({ page }) => {
 
     await canvas.click();
 
+    // await page.locator('rect').first().dblclick();
     await page.getByText('Entidad').first().dblclick();
     await page.keyboard.type('Clientes');
 
@@ -24,7 +25,8 @@ test('add attributes to an entity', async ({ page }) => {
 
 
     // Añadir un atributo primario
-    await page.getByText('Entidad').first().click();
+    // await page.locator('rect').first().dblclick();
+    await page.getByText('Entidad').first().dblclick();
     await page.getByText('Añadir atributo').first().click();
     await page.getByText('Añadir atributo primario').first().click();
 
@@ -33,7 +35,8 @@ test('add attributes to an entity', async ({ page }) => {
     await canvas.click();
 
     // Añadir un atributo secundario
-    await page.getByText('Entidad').first().click();
+    // await page.locator('rect').first().dblclick();
+    await page.getByText('Entidad').first().dblclick();
     await page.getByText('Añadir atributo').first().click();
     await page.getByText('Añadir atributo', {exact: true}).first().click();
 });
