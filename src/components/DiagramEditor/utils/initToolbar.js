@@ -55,6 +55,7 @@ export default function initToolbar(graph, tbContainer) {
         getStyleStringByObj({
             ...baseStyle,
         }),
+        "Entidad",
     );
     addVertex(
         "images/ellipse.gif",
