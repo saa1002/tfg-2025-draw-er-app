@@ -1,7 +1,9 @@
 import * as React from "react";
 import "./styles/diagramEditor.css";
 import { default as MxGraph } from "mxgraph";
+import { mxConstants } from "mxgraph-js";
 import { CompactPicker } from "react-color";
+import toast, { Toaster } from "react-hot-toast";
 import {
     configureKeyBindings,
     getStyleByKey,
@@ -13,10 +15,13 @@ const { mxGraph, mxEvent } = MxGraph();
 export default function App(props) {
     const containerRef = React.useRef(null);
     const toolbarRef = React.useRef(null);
-    const [colorPickerVisible, setColorPickerVisible] = React.useState(false);
-    const [selected, setSelected] = React.useState(null);
-    const [colorPickerType, setColorPickerType] = React.useState(null);
+
     const [graph, setGraph] = React.useState(null);
+    const [selected, setSelected] = React.useState(null);
+
+    const [showPrimaryButton, setShowPrimaryButton] = React.useState(false);
+    const [colorPickerVisible, setColorPickerVisible] = React.useState(false);
+    const [colorPickerType, setColorPickerType] = React.useState(null);
 
     // Define event handlers using useCallback to stabilize their identities
     const onChange = React.useCallback(
@@ -73,11 +78,13 @@ export default function App(props) {
             graph.getModel().addListener(mxEvent.ADD, onElementAdd);
             graph.getModel().addListener(mxEvent.MOVE_END, onDragEnd);
         }
-    }, [graph, onChange, onSelected, onElementAdd, onDragEnd]); // Dependencies are now stable
+    }, [graph, onChange, onSelected, onElementAdd, onDragEnd]);
 
+    // TODO: Remove this useEffect since it's just for debugging
     React.useEffect(() => {
         if (graph) {
             console.log(graph.model.cells);
+            console.log(selected);
         }
     });
 
@@ -148,11 +155,83 @@ export default function App(props) {
             </div>
         );
 
+    const renderAddAttribute = () => {
+        if (selected?.style.includes(";shape=rectangle") && showPrimaryButton) {
+            return (
+                <>
+                    <button
+                        type="button"
+                        className="button-toolbar-action"
+                        onClick={() => addAttribute(true)}
+                    >
+                        Añadir atributo primario
+                    </button>
+                    <button
+                        type="button"
+                        className="button-toolbar-action"
+                        onClick={() => addAttribute(false)}
+                    >
+                        Añadir atributo
+                    </button>
+                </>
+            );
+        }
+        if (selected?.style.includes(";shape=rectangle")) {
+            return (
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={() => setShowPrimaryButton(true)}
+                >
+                    Añadir atributo
+                </button>
+            );
+        }
+    };
+
+    const addAttribute = (primary) => {
+        if (selected.style.includes(";shape=rectangle")) {
+            const color = primary ? "yellow" : "blue";
+            const source = selected;
+
+            const newX = selected.geometry.x + 120;
+            const newY = selected.geometry.y;
+
+            // Define a style with labelPosition set to ALIGN_RIGHT, additional right spacing
+            const style = {};
+            style[mxConstants.STYLE_LABEL_POSITION] = mxConstants.ALIGN_RIGHT;
+            style[mxConstants.STYLE_SPACING_RIGHT] = -40; // Adjust this value to control the extra space to the right
+
+            // Apply the style to the vertex
+            graph.getStylesheet().putCellStyle("rightLabelStyle", style);
+
+            const target = graph.insertVertex(
+                null,
+                null,
+                "Atributo", // Placeholder attribute
+                newX,
+                newY,
+                10,
+                10,
+                `shape=ellipse;rightLabelStyle;fillColor=${color}`,
+            );
+            graph.insertEdge(selected, null, null, source, target);
+            graph.orderCells(false); // Move front the selected entity so the new vertex aren't on top
+
+            setShowPrimaryButton(false); // After adding go back to show the normal button
+
+            // TODO: Instead of toasting here set a listener that toast every time a cell is added
+            toast.success("Atributo insertado");
+            // TODO: Increment the offset so that new attributes are not added on top of others
+        }
+    };
+
     return (
         <div className="mxgraph-container">
             <div className="mxgraph-toolbar-container">
                 <div className="mxgraph-toolbar-container" ref={toolbarRef} />
                 <div>
+                    {renderAddAttribute()}
                     {renderMoveBackAndFrontButtons()}
                     {renderColorChange("fillColor", "Change fill color")}
                     {renderColorChange("fontColor", "Change font color")}
@@ -161,6 +240,7 @@ export default function App(props) {
                 {renderColorPicker()}
             </div>
             <div ref={containerRef} className="mxgraph-drawing-container" />
+            <Toaster position="bottom-left" />
         </div>
     );
 }
