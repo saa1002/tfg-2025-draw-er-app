@@ -2,13 +2,8 @@ import * as React from "react";
 import "./styles/diagramEditor.css";
 import { default as MxGraph } from "mxgraph";
 import { mxConstants } from "mxgraph-js";
-import { CompactPicker } from "react-color";
 import toast, { Toaster } from "react-hot-toast";
-import {
-    configureKeyBindings,
-    getStyleByKey,
-    setInitialConfiguration,
-} from "./utils";
+import { configureKeyBindings, setInitialConfiguration } from "./utils";
 
 const { mxGraph, mxEvent } = MxGraph();
 
@@ -17,21 +12,15 @@ export default function App(props) {
     const toolbarRef = React.useRef(null);
 
     const [graph, setGraph] = React.useState(null);
+    const [diagram, setDiagram] = React.useState({
+        entities: [],
+        relations: [],
+    });
     const [selected, setSelected] = React.useState(null);
+    const [entityWithAttributesHidden, setEntityWithAttributesHidden] =
+        React.useState(null);
 
     const [showPrimaryButton, setShowPrimaryButton] = React.useState(false);
-    const [colorPickerVisible, setColorPickerVisible] = React.useState(false);
-    const [colorPickerType, setColorPickerType] = React.useState(null);
-
-    // Define event handlers using useCallback to stabilize their identities
-    const onChange = React.useCallback(
-        (evt) => {
-            if (props.onChange) {
-                props.onChange(evt);
-            }
-        },
-        [props],
-    );
 
     const onSelected = React.useCallback(
         (evt) => {
@@ -39,7 +28,6 @@ export default function App(props) {
                 props.onSelected(evt);
             }
             setSelected(evt.cells[0]);
-            setColorPickerVisible(false);
         },
         [props],
     );
@@ -68,29 +56,71 @@ export default function App(props) {
             setGraph(new mxGraph(containerRef.current));
         }
         if (graph) {
-            console.log(graph);
-            setInitialConfiguration(graph, toolbarRef);
+            setInitialConfiguration(graph, diagram, toolbarRef);
             configureKeyBindings(graph);
 
             graph.getModel().endUpdate();
-            graph.getModel().addListener(mxEvent.CHANGE, onChange);
             graph.getSelectionModel().addListener(mxEvent.CHANGE, onSelected);
             graph.getModel().addListener(mxEvent.ADD, onElementAdd);
             graph.getModel().addListener(mxEvent.MOVE_END, onDragEnd);
+
+            graph.stylesheet.styles.defaultEdge.endArrow = ""; // NOTE: Edges are not directed
+            //     mxConstants.EDGESTYLE_ENTITY_RELATION;
+            console.log(mxConstants.EDGESTYLE_ENTITY_RELATION);
+
+            // Cleanup function to remove the listener
+            return () => {
+                graph.getModel().removeListener(mxEvent.ADD, onSelected);
+                graph.getModel().removeListener(mxEvent.MOVE_END, onElementAdd);
+                graph.getModel().removeListener(mxEvent.CHANGE, onSelected);
+            };
         }
-    }, [graph, onChange, onSelected, onElementAdd, onDragEnd]);
+    }, [graph, diagram, onSelected, onElementAdd, onDragEnd]);
 
     // TODO: Remove this useEffect since it's just for debugging
     React.useEffect(() => {
         if (graph) {
-            console.log(graph.model.cells);
-            console.log(selected);
+            console.log("Graph", graph);
+            console.log("Cells", graph.model.cells);
+            console.log("Diagram", diagram);
+            diagram.entities.forEach((entity) => {
+                // Check if the current entity's idMx exists in graph.model.cells
+                if (graph.model.cells.hasOwnProperty(entity.idMx)) {
+                    // Access the values from graph.model.cells using the entity's idMx
+                    const cellData = graph.model.cells[entity.idMx];
+
+                    // Update the entity's name and position
+                    entity.name = cellData.value; // Assuming 'value' is the new name
+                    entity.position.x = cellData.geometry.x; // Assuming 'geometry.x' is the new x position
+                    entity.position.y = cellData.geometry.y; // Assuming 'geometry.y' is the new y position
+                    entity.cell = cellData;
+
+                    // Check if the entity has attributes
+                    if (entity.attributes) {
+                        // Iterate over each attribute
+                        entity.attributes.forEach((attr) => {
+                            // Check if the attribute's idMx exists in graph.model.cells
+                            if (graph.model.cells.hasOwnProperty(attr.idMx)) {
+                                // Access the values from graph.model.cells using the attribute's idMx
+                                const cellDataAttr =
+                                    graph.model.cells[attr.idMx];
+
+                                const numEdgeIdMx = +attr.idMx + 1;
+                                const cellEdgeAttr =
+                                    graph.model.cells[numEdgeIdMx];
+
+                                // Update the attribute's name and position
+                                attr.name = cellDataAttr.value; // Assuming 'value' is the new name
+                                attr.position.x = cellDataAttr.geometry.x; // Assuming 'geometry.x' is the new x position
+                                attr.position.y = cellDataAttr.geometry.y; // Assuming 'geometry.y' is the new y position
+                                attr.cell = [cellDataAttr, cellEdgeAttr];
+                            }
+                        });
+                    }
+                }
+            });
         }
     });
-
-    const updateCellColor = (type, color) => {
-        graph.setCellStyles(type, color.hex);
-    };
 
     const pushCellsBack = (moveBack) => () => {
         graph.orderCells(moveBack);
@@ -116,47 +146,11 @@ export default function App(props) {
             </React.Fragment>
         );
 
-    const renderColorChange = (type, content) => {
-        if (!selected) {
-            return null;
-        }
-        return (
-            <button
-                type="button"
-                className={"button-toolbar-action"}
-                onClick={() => {
-                    setColorPickerVisible(!colorPickerVisible);
-                    setColorPickerType(type);
-                }}
-                style={{
-                    backgroundColor:
-                        selected.style && getStyleByKey(selected.style, type),
-                }}
-            >
-                {content}
-            </button>
-        );
-    };
-
-    const renderColorPicker = () =>
-        colorPickerVisible &&
-        selected && (
-            <div>
-                <div className="toolbar-separator" />
-                <CompactPicker
-                    color={
-                        selected.style &&
-                        getStyleByKey(selected.style, "fillColor")
-                    }
-                    onChange={(color) => {
-                        updateCellColor(colorPickerType, color);
-                    }}
-                />
-            </div>
-        );
-
     const renderAddAttribute = () => {
-        if (selected?.style.includes(";shape=rectangle") && showPrimaryButton) {
+        if (
+            selected?.style?.includes(";shape=rectangle") &&
+            showPrimaryButton
+        ) {
             return (
                 <>
                     <button
@@ -164,19 +158,19 @@ export default function App(props) {
                         className="button-toolbar-action"
                         onClick={() => addAttribute(true)}
                     >
-                        Añadir atributo primario
+                        Atributo primario
                     </button>
                     <button
                         type="button"
                         className="button-toolbar-action"
                         onClick={() => addAttribute(false)}
                     >
-                        Añadir atributo
+                        Atributo
                     </button>
                 </>
             );
         }
-        if (selected?.style.includes(";shape=rectangle")) {
+        if (selected?.style?.includes(";shape=rectangle")) {
             return (
                 <button
                     type="button"
@@ -189,8 +183,44 @@ export default function App(props) {
         }
     };
 
+    const renderToggleAttributes = () => {
+        if (selected?.style?.includes(";shape=rectangle")) {
+            if (
+                entityWithAttributesHidden &&
+                !entityWithAttributesHidden.hasOwnProperty(selected.id)
+            ) {
+                const updatedAttributesHidden = {
+                    ...entityWithAttributesHidden,
+                };
+                updatedAttributesHidden[selected.id] = false;
+                setEntityWithAttributesHidden(updatedAttributesHidden);
+            }
+            const attributesHidden = entityWithAttributesHidden?.[selected.id];
+            if (attributesHidden !== true) {
+                return (
+                    <button
+                        type="button"
+                        className="button-toolbar-action"
+                        onClick={hideAttributes}
+                    >
+                        Ocultar atributos
+                    </button>
+                );
+            }
+            return (
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={showAttributes}
+                >
+                    Mostrar atributos
+                </button>
+            );
+        }
+    };
+
     const addAttribute = (primary) => {
-        if (selected.style.includes(";shape=rectangle")) {
+        if (selected?.style?.includes(";shape=rectangle")) {
             const color = primary ? "yellow" : "blue";
             const source = selected;
 
@@ -218,6 +248,17 @@ export default function App(props) {
             graph.insertEdge(selected, null, null, source, target);
             graph.orderCells(false); // Move front the selected entity so the new vertex aren't on top
 
+            diagram.entities
+                .find((entity) => entity.idMx === selected.id)
+                .attributes.push({
+                    idMx: target.id,
+                    name: target.value,
+                    position: {
+                        x: target.geometry.x,
+                        y: target.geometry.y,
+                    },
+                });
+
             setShowPrimaryButton(false); // After adding go back to show the normal button
 
             // TODO: Instead of toasting here set a listener that toast every time a cell is added
@@ -226,18 +267,45 @@ export default function App(props) {
         }
     };
 
+    const hideAttributes = () => {
+        const selectedEntity = diagram.entities.find(
+            ({ idMx }) => idMx === selected.id,
+        );
+        const mxAttributesToRemove = [];
+        selectedEntity.attributes.forEach(({ idMx }) => {
+            mxAttributesToRemove.push(graph.model.cells[idMx]);
+        });
+        graph.removeCells(mxAttributesToRemove);
+
+        const updatedAttributesHidden = { ...entityWithAttributesHidden };
+        updatedAttributesHidden[selected.id] = true;
+        setEntityWithAttributesHidden(updatedAttributesHidden);
+    };
+
+    const showAttributes = () => {
+        const selectedEntity = diagram.entities.find(
+            ({ idMx }) => idMx === selected.id,
+        );
+        const mxAttributesToAdd = [];
+        selectedEntity.attributes.forEach(({ cell }) => {
+            mxAttributesToAdd.push(cell.at(0));
+            mxAttributesToAdd.push(cell.at(1));
+        });
+        graph.addCells(mxAttributesToAdd);
+        graph.orderCells(true, mxAttributesToAdd); // back = true
+
+        const updatedAttributesHidden = { ...entityWithAttributesHidden };
+        updatedAttributesHidden[selected.id] = false;
+        setEntityWithAttributesHidden(updatedAttributesHidden);
+    };
+
     return (
         <div className="mxgraph-container">
             <div className="mxgraph-toolbar-container">
                 <div className="mxgraph-toolbar-container" ref={toolbarRef} />
-                <div>
-                    {renderAddAttribute()}
-                    {renderMoveBackAndFrontButtons()}
-                    {renderColorChange("fillColor", "Change fill color")}
-                    {renderColorChange("fontColor", "Change font color")}
-                    {renderColorChange("strokeColor", "Change border color")}
-                </div>
-                {renderColorPicker()}
+                <div>{renderMoveBackAndFrontButtons()}</div>
+                <div>{renderAddAttribute()}</div>
+                <div>{renderToggleAttributes()}</div>
             </div>
             <div ref={containerRef} className="mxgraph-drawing-container" />
             <Toaster position="bottom-left" />
