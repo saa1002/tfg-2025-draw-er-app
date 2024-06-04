@@ -7,7 +7,7 @@ export default function addToolbarItem(
     toolbar,
     prototype,
     image,
-    diagram,
+    diagramRef,
     addToDiagram,
 ) {
     // Function that is executed when the image is dropped on
@@ -23,7 +23,8 @@ export default function addToolbarItem(
         graph.addCell(vertex);
         graph.setSelectionCell(vertex);
         if (addToDiagram) {
-            diagram.entities.push({
+            console.log(diagramRef.current);
+            diagramRef.current.entities.push({
                 idMx: vertex.id,
                 name: vertex.value,
                 position: { x: vertex.geometry.x, y: vertex.geometry.y },

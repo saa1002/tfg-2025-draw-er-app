@@ -10,9 +10,16 @@ const { mxGraph, mxEvent } = MxGraph();
 export default function App(props) {
     const containerRef = React.useRef(null);
     const toolbarRef = React.useRef(null);
+    // Define a style with labelPosition set to ALIGN_RIGHT, additional right spacing
+    const rightLabelStyle = {};
+    rightLabelStyle[mxConstants.STYLE_LABEL_POSITION] = mxConstants.ALIGN_RIGHT;
+    rightLabelStyle[mxConstants.STYLE_SPACING_RIGHT] = -40; // Adjust this value to control the extra space to the right
+    const keyAttrStyle = {};
+    // Apply font underline to the label text
+    keyAttrStyle[mxConstants.STYLE_FONTSTYLE] = mxConstants.FONT_UNDERLINE;
 
     const [graph, setGraph] = React.useState(null);
-    const [diagram, setDiagram] = React.useState({
+    const diagramRef = React.useRef({
         entities: [],
         relations: [],
     });
@@ -20,7 +27,8 @@ export default function App(props) {
     const [entityWithAttributesHidden, setEntityWithAttributesHidden] =
         React.useState(null);
 
-    const [showPrimaryButton, setShowPrimaryButton] = React.useState(false);
+    const [refreshDiagram, setRefreshDiagram] = React.useState(false);
+    const addPrimaryAttrRef = React.useRef(null);
 
     const onSelected = React.useCallback(
         (evt) => {
@@ -56,7 +64,7 @@ export default function App(props) {
             setGraph(new mxGraph(containerRef.current));
         }
         if (graph) {
-            setInitialConfiguration(graph, diagram, toolbarRef);
+            setInitialConfiguration(graph, diagramRef, toolbarRef);
             configureKeyBindings(graph);
 
             graph.getModel().endUpdate();
@@ -65,6 +73,11 @@ export default function App(props) {
             graph.getModel().addListener(mxEvent.MOVE_END, onDragEnd);
 
             graph.stylesheet.styles.defaultEdge.endArrow = ""; // NOTE: Edges are not directed
+            graph
+                .getStylesheet()
+                .putCellStyle("rightLabelStyle", rightLabelStyle);
+
+            graph.getStylesheet().putCellStyle("keyAttrStyle", keyAttrStyle);
 
             // Cleanup function to remove the listener
             return () => {
@@ -73,15 +86,12 @@ export default function App(props) {
                 graph.getModel().removeListener(mxEvent.CHANGE, onSelected);
             };
         }
-    }, [graph, diagram, onSelected, onElementAdd, onDragEnd]);
+    }, [graph, onSelected, onElementAdd, onDragEnd]);
 
-    // TODO: Remove this useEffect since it's just for debugging
     React.useEffect(() => {
         if (graph) {
-            console.log("Graph", graph);
-            console.log("Cells", graph.model.cells);
-            console.log("Diagram", diagram);
-            diagram.entities.forEach((entity) => {
+            console.log("Diagram", diagramRef.current);
+            diagramRef.current.entities.forEach((entity) => {
                 // Check if the current entity's idMx exists in graph.model.cells
                 if (graph.model.cells.hasOwnProperty(entity.idMx)) {
                     // Access the values from graph.model.cells using the entity's idMx
@@ -118,10 +128,137 @@ export default function App(props) {
                 }
             });
         }
-    });
+    }, [selected, refreshDiagram]);
 
     const pushCellsBack = (moveBack) => () => {
         graph.orderCells(moveBack);
+    };
+
+    const addAttribute = () => {
+        if (selected?.style?.includes("shape=rectangle")) {
+            const selectedDiag = diagramRef.current.entities.find(
+                (entity) => entity.idMx === selected.id,
+            );
+            const addKey = selectedDiag?.attributes?.length === 0;
+            addPrimaryAttrRef.current = addKey;
+            const source = selected;
+
+            const newX = selected.geometry.x + 120;
+            const newY = selected.geometry.y;
+
+            // Apply the style to the vertex
+
+            const target = graph.insertVertex(
+                null,
+                null,
+                "Atributo", // Placeholder attribute
+                newX,
+                newY,
+                10,
+                10,
+                `shape=ellipse;rightLabelStyle;${
+                    addPrimaryAttrRef.current ? "keyAttrStyle" : ""
+                }`,
+            );
+            graph.insertEdge(selected, null, null, source, target);
+            graph.orderCells(false); // Move front the selected entity so the new vertex aren't on top
+
+            // Update diagram state
+            diagramRef.current.entities
+                .find((entity) => entity.idMx === selected.id)
+                .attributes.push({
+                    idMx: target.id,
+                    name: target.value,
+                    position: {
+                        x: target.geometry.x,
+                        y: target.geometry.y,
+                    },
+                    key: addPrimaryAttrRef.current,
+                });
+
+            // TODO: Instead of toasting here set a listener that toast every time a cell is added
+            toast.success("Atributo insertado");
+            // TODO: Increment the offset so that new attributes are not added on top of others
+        }
+    };
+
+    const hideAttributes = () => {
+        const selectedEntity = diagramRef.current.entities.find(
+            ({ idMx }) => idMx === selected.id,
+        );
+        const mxAttributesToRemove = [];
+        selectedEntity.attributes.forEach(({ idMx }) => {
+            mxAttributesToRemove.push(graph.model.cells[idMx]);
+        });
+        graph.removeCells(mxAttributesToRemove);
+
+        const updatedAttributesHidden = { ...entityWithAttributesHidden };
+        updatedAttributesHidden[selected.id] = true;
+        setEntityWithAttributesHidden(updatedAttributesHidden);
+    };
+
+    const showAttributes = () => {
+        const selectedEntity = diagramRef.current.entities.find(
+            ({ idMx }) => idMx === selected.id,
+        );
+        const mxAttributesToAdd = [];
+        selectedEntity.attributes.forEach(({ cell }) => {
+            mxAttributesToAdd.push(cell.at(0));
+            mxAttributesToAdd.push(cell.at(1));
+        });
+        graph.addCells(mxAttributesToAdd);
+        graph.orderCells(true, mxAttributesToAdd); // back = true
+
+        const updatedAttributesHidden = { ...entityWithAttributesHidden };
+        updatedAttributesHidden[selected.id] = false;
+        setEntityWithAttributesHidden(updatedAttributesHidden);
+    };
+
+    const toggleAttrKey = () => {
+        let entityIndexToUpdate;
+        const cellsToDelete = [];
+        const cellsToRecreate = [];
+
+        diagramRef.current.entities.find((entity, index) => {
+            entity.attributes.forEach((attribute) => {
+                if (attribute.idMx === selected.id) {
+                    entityIndexToUpdate = index;
+                    return true;
+                }
+            });
+        });
+
+        diagramRef.current.entities
+            .at(entityIndexToUpdate)
+            .attributes.forEach((attribute) => {
+                cellsToDelete.push(attribute.cell.at(0));
+                cellsToDelete.push(attribute.cell.at(1));
+                const originalString = attribute.cell.at(0).style;
+                if (attribute.idMx === selected.id) {
+                    attribute.key = true;
+                    attribute.value = "Clave";
+                    const modifiedString = `${originalString}keyAttrStyle`;
+                    attribute.cell.at(0).style = modifiedString;
+                } else {
+                    attribute.key = false;
+                    const stringWithoutKeyAttrStyle = originalString.replace(
+                        /keyAttrStyle(;|$)/,
+                        "",
+                    );
+                    attribute.cell.at(0).style = stringWithoutKeyAttrStyle;
+                }
+                cellsToRecreate.push(attribute.cell.at(0));
+                cellsToRecreate.push(attribute.cell.at(1));
+            });
+
+        // The easiest way to change the style it's to modify it and then
+        // remove the old cells and create the modified ones
+        graph.removeCells(cellsToDelete);
+        graph.addCells(cellsToRecreate);
+        graph.orderCells(true, cellsToRecreate);
+
+        // This triggers a rerender
+        setRefreshDiagram((prevState) => !prevState);
     };
 
     const renderMoveBackAndFrontButtons = () =>
@@ -145,35 +282,12 @@ export default function App(props) {
         );
 
     const renderAddAttribute = () => {
-        if (
-            selected?.style?.includes(";shape=rectangle") &&
-            showPrimaryButton
-        ) {
-            return (
-                <>
-                    <button
-                        type="button"
-                        className="button-toolbar-action"
-                        onClick={() => addAttribute(true)}
-                    >
-                        Atributo primario
-                    </button>
-                    <button
-                        type="button"
-                        className="button-toolbar-action"
-                        onClick={() => addAttribute(false)}
-                    >
-                        Atributo
-                    </button>
-                </>
-            );
-        }
-        if (selected?.style?.includes(";shape=rectangle")) {
+        if (selected?.style?.includes("shape=rectangle")) {
             return (
                 <button
                     type="button"
                     className="button-toolbar-action"
-                    onClick={() => setShowPrimaryButton(true)}
+                    onClick={addAttribute}
                 >
                     Añadir atributo
                 </button>
@@ -182,7 +296,7 @@ export default function App(props) {
     };
 
     const renderToggleAttributes = () => {
-        if (selected?.style?.includes(";shape=rectangle")) {
+        if (selected?.style?.includes("shape=rectangle")) {
             if (
                 entityWithAttributesHidden &&
                 !entityWithAttributesHidden.hasOwnProperty(selected.id)
@@ -217,94 +331,34 @@ export default function App(props) {
         }
     };
 
-    const addAttribute = (primary) => {
-        if (selected?.style?.includes(";shape=rectangle")) {
-            const source = selected;
+    const renderToggleAttrKey = () => {
+        const isAttribute = selected?.style?.includes("shape=ellipse");
+        let isKey;
 
-            const newX = selected.geometry.x + 120;
-            const newY = selected.geometry.y;
+        for (const entity of diagramRef.current.entities) {
+            for (const attribute of entity.attributes) {
+                if (attribute.idMx === selected?.id) {
+                    isKey = attribute.key;
+                    break; // Exit the inner loop once the matching attribute is found
+                }
+            }
 
-            // Define a style with labelPosition set to ALIGN_RIGHT, additional right spacing
-            const rightLabelStyle = {};
-            rightLabelStyle[mxConstants.STYLE_LABEL_POSITION] =
-                mxConstants.ALIGN_RIGHT;
-            rightLabelStyle[mxConstants.STYLE_SPACING_RIGHT] = -40; // Adjust this value to control the extra space to the right
-
-            // Apply the style to the vertex
-            graph
-                .getStylesheet()
-                .putCellStyle("rightLabelStyle", rightLabelStyle);
-
-            const keyAttrStyle = {};
-            // Apply font underline to the label text
-            keyAttrStyle[mxConstants.STYLE_FONTSTYLE] =
-                mxConstants.FONT_UNDERLINE;
-            graph.getStylesheet().putCellStyle("keyAttrStyle", keyAttrStyle);
-
-            const target = graph.insertVertex(
-                null,
-                null,
-                "Atributo", // Placeholder attribute
-                newX,
-                newY,
-                10,
-                10,
-                `shape=ellipse;rightLabelStyle;${
-                    primary ? "keyAttrStyle" : ""
-                }`,
-            );
-            graph.insertEdge(selected, null, null, source, target);
-            graph.orderCells(false); // Move front the selected entity so the new vertex aren't on top
-
-            diagram.entities
-                .find((entity) => entity.idMx === selected.id)
-                .attributes.push({
-                    idMx: target.id,
-                    name: target.value,
-                    position: {
-                        x: target.geometry.x,
-                        y: target.geometry.y,
-                    },
-                });
-
-            setShowPrimaryButton(false); // After adding go back to show the normal button
-
-            // TODO: Instead of toasting here set a listener that toast every time a cell is added
-            toast.success("Atributo insertado");
-            // TODO: Increment the offset so that new attributes are not added on top of others
+            if (isKey !== undefined) {
+                break; // Exit the outer loop once the matching attribute is found
+            }
         }
-    };
 
-    const hideAttributes = () => {
-        const selectedEntity = diagram.entities.find(
-            ({ idMx }) => idMx === selected.id,
-        );
-        const mxAttributesToRemove = [];
-        selectedEntity.attributes.forEach(({ idMx }) => {
-            mxAttributesToRemove.push(graph.model.cells[idMx]);
-        });
-        graph.removeCells(mxAttributesToRemove);
-
-        const updatedAttributesHidden = { ...entityWithAttributesHidden };
-        updatedAttributesHidden[selected.id] = true;
-        setEntityWithAttributesHidden(updatedAttributesHidden);
-    };
-
-    const showAttributes = () => {
-        const selectedEntity = diagram.entities.find(
-            ({ idMx }) => idMx === selected.id,
-        );
-        const mxAttributesToAdd = [];
-        selectedEntity.attributes.forEach(({ cell }) => {
-            mxAttributesToAdd.push(cell.at(0));
-            mxAttributesToAdd.push(cell.at(1));
-        });
-        graph.addCells(mxAttributesToAdd);
-        graph.orderCells(true, mxAttributesToAdd); // back = true
-
-        const updatedAttributesHidden = { ...entityWithAttributesHidden };
-        updatedAttributesHidden[selected.id] = false;
-        setEntityWithAttributesHidden(updatedAttributesHidden);
+        if (isAttribute && !isKey) {
+            return (
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={toggleAttrKey}
+                >
+                    Convertir en clave
+                </button>
+            );
+        }
     };
 
     return (
@@ -314,6 +368,7 @@ export default function App(props) {
                 <div>{renderMoveBackAndFrontButtons()}</div>
                 <div>{renderAddAttribute()}</div>
                 <div>{renderToggleAttributes()}</div>
+                <div>{renderToggleAttrKey()}</div>
             </div>
             <div ref={containerRef} className="mxgraph-drawing-container" />
             <Toaster position="bottom-left" />
