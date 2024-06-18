@@ -8,7 +8,8 @@ export default function addToolbarItem(
     prototype,
     image,
     diagramRef,
-    addToDiagram,
+    addEntityToDiagram,
+    addRelationToDiagram,
 ) {
     // Function that is executed when the image is dropped on
     // the graph. The cell argument points to the cell under
@@ -22,13 +23,31 @@ export default function addToolbarItem(
 
         graph.addCell(vertex);
         graph.setSelectionCell(vertex);
-        if (addToDiagram) {
-            console.log(diagramRef.current);
+        if (addEntityToDiagram) {
             diagramRef.current.entities.push({
                 idMx: vertex.id,
                 name: vertex.value,
                 position: { x: vertex.geometry.x, y: vertex.geometry.y },
                 attributes: [],
+            });
+        }
+        if (addRelationToDiagram) {
+            diagramRef.current.relations.push({
+                idMx: vertex.id,
+                name: vertex.value,
+                position: { x: vertex.geometry.x, y: vertex.geometry.y },
+                side1: {
+                    idMx: "",
+                    cardinality: "",
+                    cell: "",
+                    entity: { name: "", idMx: "" },
+                },
+                side2: {
+                    idMx: "",
+                    cardinality: "",
+                    cell: "",
+                    entity: { cell: "", idMx: "" },
+                },
             });
         }
     };

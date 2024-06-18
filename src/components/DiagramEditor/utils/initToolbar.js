@@ -35,7 +35,8 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
         h,
         style,
         value = null,
-        addToDiagram = null,
+        addEntityToDiagram = null,
+        addRelationToDiagram = null,
     ) => {
         const vertex = new mxCell(null, new mxGeometry(0, 0, w, h), style);
         if (value) {
@@ -49,7 +50,8 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
             vertex,
             icon,
             diagramRef,
-            addToDiagram,
+            addEntityToDiagram,
+            addRelationToDiagram,
         );
         img.enabled = true;
 
@@ -63,20 +65,33 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
     const baseStyle = { ...graph.getStylesheet().getDefaultVertexStyle() };
 
     addVertex(
-        "images/rectangle.gif",
+        "images/rectangle.png",
         100,
         40,
         getStyleStringByObj({
             ...baseStyle,
         }),
         "Entidad",
-        true,
+        true, //addEntityToDiagram
+        false, //addRelationToDiagram
     );
     addVertex(
-        "images/text.gif",
-        0,
-        0,
-        "text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];",
-        "Text",
+        "images/rhombus.png",
+        100,
+        40,
+        getStyleStringByObj({
+            ...baseStyle,
+            [mxConstants.STYLE_SHAPE]: "rhombus",
+        }),
+        "Relación",
+        false, //addEntityToDiagram
+        true, //addRelationToDiagram
     );
+    // addVertex(
+    //     "images/text.gif",
+    //     0,
+    //     0,
+    //     "text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];",
+    //     "Text",
+    // );
 }
