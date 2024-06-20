@@ -48,6 +48,8 @@ export default function App(props) {
     const [selected, setSelected] = React.useState(null);
     const [entityWithAttributesHidden, setEntityWithAttributesHidden] =
         React.useState(null);
+    const [relationWithAttributesHidden, setRelationWithAttributesHidden] =
+        React.useState(null);
 
     const [refreshDiagram, setRefreshDiagram] = React.useState(false);
     const addPrimaryAttrRef = React.useRef(null);
@@ -166,6 +168,29 @@ export default function App(props) {
                     relation.position.x = cellData.geometry.x; // Assuming 'geometry.x' is the new x position
                     relation.position.y = cellData.geometry.y; // Assuming 'geometry.y' is the new y position
                     relation.cell = cellData;
+
+                    // Check if the entity has attributes
+                    if (relation.attributes) {
+                        // Iterate over each attribute
+                        relation.attributes.forEach((attr) => {
+                            // Check if the attribute's idMx exists in graph.model.cells
+                            if (graph.model.cells.hasOwnProperty(attr.idMx)) {
+                                // Access the values from graph.model.cells using the attribute's idMx
+                                const cellDataAttr =
+                                    graph.model.cells[attr.idMx];
+
+                                const numEdgeIdMx = +attr.idMx + 1;
+                                const cellEdgeAttr =
+                                    graph.model.cells[numEdgeIdMx];
+
+                                // Update the attribute's name and position
+                                attr.name = cellDataAttr.value; // Assuming 'value' is the new name
+                                attr.position.x = cellDataAttr.geometry.x; // Assuming 'geometry.x' is the new x position
+                                attr.position.y = cellDataAttr.geometry.y; // Assuming 'geometry.y' is the new y position
+                                attr.cell = [cellDataAttr, cellEdgeAttr];
+                            }
+                        });
+                    }
                 }
             });
         }
@@ -176,48 +201,57 @@ export default function App(props) {
     };
 
     const addAttribute = () => {
+        let selectedDiag;
+        let isRelation = false;
         if (selected?.style?.includes("shape=rectangle")) {
-            const selectedDiag = diagramRef.current.entities.find(
+            selectedDiag = diagramRef.current.entities.find(
                 (entity) => entity.idMx === selected.id,
             );
-            const addKey = selectedDiag?.attributes?.length === 0;
-            addPrimaryAttrRef.current = addKey;
-            const source = selected;
-
-            const newX = selected.geometry.x + 120;
-            const newY = selected.geometry.y;
-
-            // Apply the style to the vertex
-
-            const target = graph.insertVertex(
-                null,
-                null,
-                "Atributo", // Placeholder attribute
-                newX,
-                newY,
-                10,
-                10,
-                `shape=ellipse;rightLabelStyle;notResizeableStyle;transparentColor;${
-                    addPrimaryAttrRef.current ? "keyAttrStyle" : ""
-                }`,
+        } else if (selected?.style?.includes("shape=rhombus")) {
+            selectedDiag = diagramRef.current.relations.find(
+                (relation) => relation.idMx === selected.id,
             );
+            isRelation = true;
+        }
+        const addKey = selectedDiag?.attributes?.length === 0;
+        addPrimaryAttrRef.current = addKey;
+        const source = selected;
 
-            // TODO: Protect attributes edges to be reassigned
-            // graph.addListener(mxEvent.CONNECT, function (sender, evt) {
-            //     var connection = evt.getProperty("connection");
-            //     var source = connection.getSource();
-            //     var target = connection.getTarget();
-            //
-            //     // Check if the source and target are the ones you want to lock
-            //     if (source === lockedSource || target === lockedTarget) {
-            //         // Prevent the connection
-            //         evt.consume();
-            //     }
-            // });
+        const newX = selected.geometry.x + 120;
+        const newY = selected.geometry.y;
 
-            graph.insertEdge(selected, null, null, source, target);
-            graph.orderCells(false); // Move front the selected entity so the new vertex aren't on top
+        // Apply the style to the vertex
 
+        const target = graph.insertVertex(
+            null,
+            null,
+            "Atributo", // Placeholder attribute
+            newX,
+            newY,
+            10,
+            10,
+            `shape=ellipse;rightLabelStyle;notResizeableStyle;transparentColor;${
+                addPrimaryAttrRef.current && !isRelation ? "keyAttrStyle" : ""
+            }`,
+        );
+
+        // TODO: Protect attributes edges to be reassigned
+        // graph.addListener(mxEvent.CONNECT, function (sender, evt) {
+        //     var connection = evt.getProperty("connection");
+        //     var source = connection.getSource();
+        //     var target = connection.getTarget();
+        //
+        //     // Check if the source and target are the ones you want to lock
+        //     if (source === lockedSource || target === lockedTarget) {
+        //         // Prevent the connection
+        //         evt.consume();
+        //     }
+        // });
+
+        graph.insertEdge(selected, null, null, source, target);
+        graph.orderCells(false); // Move front the selected entity so the new vertex aren't on top
+
+        if (!isRelation) {
             // Update diagram state
             diagramRef.current.entities
                 .find((entity) => entity.idMx === selected.id)
@@ -230,17 +264,31 @@ export default function App(props) {
                     },
                     key: addPrimaryAttrRef.current,
                 });
-
-            // TODO: Instead of toasting here set a listener that toast every time a cell is added
-            toast.success("Atributo insertado");
-            // TODO: Increment the offset so that new attributes are not added on top of others
+        } else if (isRelation) {
+            // Update diagram state
+            diagramRef.current.relations
+                .find((relation) => relation.idMx === selected.id)
+                .attributes.push({
+                    idMx: target.id,
+                    name: target.value,
+                    position: {
+                        x: target.geometry.x,
+                        y: target.geometry.y,
+                    },
+                });
         }
+        toast.success("Atributo insertado");
+        // TODO: Increment the offset so that new attributes are not added on top of others
     };
 
-    const hideAttributes = () => {
-        const selectedEntity = diagramRef.current.entities.find(
-            ({ idMx }) => idMx === selected.id,
-        );
+    const hideAttributes = (isRelationNM) => {
+        const selectedEntity = !isRelationNM
+            ? diagramRef.current.entities.find(
+                  ({ idMx }) => idMx === selected.id,
+              )
+            : diagramRef.current.relations.find(
+                  ({ idMx }) => idMx === selected.id,
+              );
         const mxAttributesToRemove = [];
         selectedEntity.attributes.forEach(({ idMx }) => {
             mxAttributesToRemove.push(graph.model.cells[idMx]);
@@ -252,10 +300,14 @@ export default function App(props) {
         setEntityWithAttributesHidden(updatedAttributesHidden);
     };
 
-    const showAttributes = () => {
-        const selectedEntity = diagramRef.current.entities.find(
-            ({ idMx }) => idMx === selected.id,
-        );
+    const showAttributes = (isRelationNM) => {
+        const selectedEntity = !isRelationNM
+            ? diagramRef.current.entities.find(
+                  ({ idMx }) => idMx === selected.id,
+              )
+            : diagramRef.current.relations.find(
+                  ({ idMx }) => idMx === selected.id,
+              );
         const mxAttributesToAdd = [];
         selectedEntity.attributes.forEach(({ cell }) => {
             mxAttributesToAdd.push(cell.at(0));
@@ -350,8 +402,34 @@ export default function App(props) {
         }
     };
 
+    const renderRelationAddAttribute = () => {
+        if (
+            selected?.style?.includes("shape=rhombus") &&
+            diagramRef.current.relations.find(
+                (entity) => entity.idMx === selected?.id,
+            )?.canHoldAttributes
+        ) {
+            return (
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={addAttribute}
+                >
+                    Añadir atributo
+                </button>
+            );
+        }
+    };
+
     const renderToggleAttributes = () => {
-        if (selected?.style?.includes("shape=rectangle")) {
+        const isEntity = selected?.style?.includes("shape=rectangle");
+        const isRelationNM =
+            selected?.style?.includes("shape=rhombus") &&
+            diagramRef.current.relations.find(
+                (entity) => entity.idMx === selected?.id,
+            )?.canHoldAttributes;
+
+        if (isEntity || isRelationNM) {
             if (
                 entityWithAttributesHidden &&
                 !entityWithAttributesHidden.hasOwnProperty(selected.id)
@@ -363,12 +441,13 @@ export default function App(props) {
                 setEntityWithAttributesHidden(updatedAttributesHidden);
             }
             const attributesHidden = entityWithAttributesHidden?.[selected.id];
+
             if (attributesHidden !== true) {
                 return (
                     <button
                         type="button"
                         className="button-toolbar-action"
-                        onClick={hideAttributes}
+                        onClick={() => hideAttributes(isRelationNM)}
                     >
                         Ocultar atributos
                     </button>
@@ -378,7 +457,7 @@ export default function App(props) {
                 <button
                     type="button"
                     className="button-toolbar-action"
-                    onClick={showAttributes}
+                    onClick={() => showAttributes(isRelationNM)}
                 >
                     Mostrar atributos
                 </button>
@@ -389,6 +468,7 @@ export default function App(props) {
     const renderToggleAttrKey = () => {
         const isAttribute = selected?.style?.includes("shape=ellipse");
         let isKey;
+        let isFromRelation = false;
 
         for (const entity of diagramRef.current.entities) {
             for (const attribute of entity.attributes) {
@@ -403,7 +483,16 @@ export default function App(props) {
             }
         }
 
-        if (isAttribute && !isKey) {
+        for (const relation of diagramRef.current.relations) {
+            for (const attribute of relation.attributes) {
+                if (attribute.idMx === selected?.id) {
+                    isFromRelation = true;
+                    break;
+                }
+            }
+        }
+
+        if (isAttribute && !isKey && !isFromRelation) {
             return (
                 <button
                     type="button"
@@ -631,6 +720,10 @@ export default function App(props) {
             selectedDiag.side1.cardinality = side1;
             selectedDiag.side2.cardinality = side2;
 
+            if (side1 === "1:N" && side2 === "1:N") {
+                selectedDiag.canHoldAttributes = true;
+            }
+
             const label1 = selectedDiag.side1.cell;
             const label2 = selectedDiag.side2.cell;
 
@@ -771,6 +864,7 @@ export default function App(props) {
             <div className="mxgraph-toolbar-container">
                 <div className="mxgraph-toolbar-container" ref={toolbarRef} />
                 <div>{renderAddAttribute()}</div>
+                <div>{renderRelationAddAttribute()}</div>
                 <div>{renderToggleAttributes()}</div>
                 <div>{renderToggleAttrKey()}</div>
                 <div>{renderRelationConfiguration()}</div>
