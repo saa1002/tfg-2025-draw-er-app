@@ -24,6 +24,7 @@
     "start": "BROWSER=none react-scripts start",
     "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "jest",
+    "test:e2e": "npx playwright test",
     "eject": "react-scripts eject",
     "format": "npx @biomejs/biome format --write ./src",
     "lint": "npx @biomejs/biome lint --apply ./src"
