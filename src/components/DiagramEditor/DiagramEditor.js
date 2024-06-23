@@ -731,7 +731,7 @@ export default function App(props) {
             selectedDiag.side1.cardinality = side1;
             selectedDiag.side2.cardinality = side2;
 
-            if (side1 === "1:N" && side2 === "1:N") {
+            if (side1.endsWith(":N") && side2.endsWith(":N")) {
                 selectedDiag.canHoldAttributes = true;
             }
 
