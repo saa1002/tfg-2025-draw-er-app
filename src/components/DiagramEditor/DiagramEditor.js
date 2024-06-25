@@ -517,7 +517,25 @@ export default function App(props) {
         const [open, setOpen] = React.useState(false);
         const [acceptDisabled, setAcceptDisabled] = React.useState(true);
 
+        const [validationMessage, setValidationMessage] = React.useState("");
+
         const handleClickOpen = () => {
+            const selectedDiag = diagramRef.current.relations.find(
+                (entity) => entity.idMx === selected?.id,
+            );
+
+            // Check if the relation already has sides configured
+            if (
+                selectedDiag.side1.entity.idMx &&
+                selectedDiag.side2.entity.idMx
+            ) {
+                setAcceptDisabled(true);
+                setValidationMessage("Esta relación ya está configurada.");
+            } else {
+                setAcceptDisabled(false);
+                setValidationMessage("Escoger los lados de esta relación");
+            }
+
             setOpen(true);
         };
 
@@ -635,60 +653,68 @@ export default function App(props) {
                         </DialogTitle>
                         <DialogContent>
                             <DialogContentText id="alert-dialog-description">
-                                Escoger los lados de esta relación
+                                {validationMessage}
                             </DialogContentText>
-                            <Box sx={{ minHeight: 10 }} />
-                            <Box sx={{ minWidth: 120 }}>
-                                <FormControl fullWidth>
-                                    <InputLabel id="side1-label">
-                                        Lado 1
-                                    </InputLabel>
-                                    <Select
-                                        id="side1"
-                                        value={side1}
-                                        label="Age"
-                                        onChange={handleChangeSide1}
-                                    >
-                                        {diagramRef.current.entities.map(
-                                            (entity) => {
-                                                return (
-                                                    <MenuItem
-                                                        key={entity.idMx}
-                                                        value={entity}
-                                                    >
-                                                        {entity.name}
-                                                    </MenuItem>
-                                                );
-                                            },
-                                        )}
-                                    </Select>
-                                </FormControl>
-                                <Box sx={{ minHeight: 10 }} />
-                                <FormControl fullWidth>
-                                    <InputLabel id="side2-label">
-                                        Lado 2
-                                    </InputLabel>
-                                    <Select
-                                        id="side2"
-                                        value={side2}
-                                        label="Lado 2"
-                                        onChange={handleChangeSide2}
-                                    >
-                                        {diagramRef.current.entities.map(
-                                            (entity) => {
-                                                return (
-                                                    <MenuItem
-                                                        key={entity.idMx}
-                                                        value={entity}
-                                                    >
-                                                        {entity.name}
-                                                    </MenuItem>
-                                                );
-                                            },
-                                        )}
-                                    </Select>
-                                </FormControl>
-                            </Box>
+                            {!acceptDisabled && (
+                                <>
+                                    <Box sx={{ minHeight: 10 }} />
+                                    <Box sx={{ minWidth: 120 }}>
+                                        <FormControl fullWidth>
+                                            <InputLabel id="side1-label">
+                                                Lado 1
+                                            </InputLabel>
+                                            <Select
+                                                id="side1"
+                                                value={side1}
+                                                label="Lado 1"
+                                                onChange={handleChangeSide1}
+                                            >
+                                                {diagramRef.current.entities.map(
+                                                    (entity) => {
+                                                        return (
+                                                            <MenuItem
+                                                                key={
+                                                                    entity.idMx
+                                                                }
+                                                                value={entity}
+                                                            >
+                                                                {entity.name}
+                                                            </MenuItem>
+                                                        );
+                                                    },
+                                                )}
+                                            </Select>
+                                        </FormControl>
+                                        <Box sx={{ minHeight: 10 }} />
+                                        <FormControl fullWidth>
+                                            <InputLabel id="side2-label">
+                                                Lado 2
+                                            </InputLabel>
+                                            <Select
+                                                id="side2"
+                                                value={side2}
+                                                label="Lado 2"
+                                                onChange={handleChangeSide2}
+                                            >
+                                                {diagramRef.current.entities.map(
+                                                    (entity) => {
+                                                        return (
+                                                            <MenuItem
+                                                                key={
+                                                                    entity.idMx
+                                                                }
+                                                                value={entity}
+                                                            >
+                                                                {entity.name}
+                                                            </MenuItem>
+                                                        );
+                                                    },
+                                                )}
+                                            </Select>
+                                        </FormControl>
+                                    </Box>
+                                </>
+                            )}
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={handleClose}>Cancelar</Button>
