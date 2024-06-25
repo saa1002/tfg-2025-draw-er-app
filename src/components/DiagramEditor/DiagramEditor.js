@@ -343,8 +343,6 @@ export default function App(props) {
         diagramRef.current.entities
             .at(entityIndexToUpdate)
             .attributes.forEach((attribute) => {
-                // TODO: Instead of deleting and adding the cells update
-                // it to use the Refresh canvas (there is a note in this file)
                 cellsToDelete.push(accessCell(attribute.cell.at(0)));
                 cellsToDelete.push(accessCell(attribute.cell.at(1)));
                 const originalString = accessCell(attribute.cell.at(0)).style;
@@ -514,7 +512,6 @@ export default function App(props) {
         }
     };
 
-    // TODO: This component is highly refactorizable
     const renderRelationConfiguration = () => {
         const isRelation = selected?.style?.includes("shape=rhombus");
         const [open, setOpen] = React.useState(false);
@@ -529,8 +526,6 @@ export default function App(props) {
         };
 
         const handleAccept = () => {
-            // TODO: Si la relación ya está configurada debe mostrarse un toast de error indicando
-            // que ya existe una relación entre estas dos entidades
             const source = selected;
 
             const target1 = accessCell(side1.idMx);
