@@ -593,6 +593,8 @@ export default function App(props) {
             }
             graph.orderCells(true, [edge1, edge2]); // Move the new edges to the back
 
+            setSide1("");
+            setSide2("");
             setOpen(false);
         };
 
@@ -738,6 +740,8 @@ export default function App(props) {
             const view = graph.getView(graphView);
             view.refresh();
 
+            setSide1("");
+            setSide2("");
             setOpen(false);
         };
 
