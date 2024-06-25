@@ -18,7 +18,7 @@ import { mxConstants, mxPoint } from "mxgraph-js";
 import toast, { Toaster } from "react-hot-toast";
 import { generateSQL } from "../../utils/sql";
 import { POSSIBLE_CARDINALITIES, validateGraph } from "../../utils/validation";
-import { configureKeyBindings, setInitialConfiguration } from "./utils";
+import { setInitialConfiguration } from "./utils";
 
 const { mxGraph, mxEvent } = MxGraph();
 
@@ -93,7 +93,6 @@ export default function App(props) {
         }
         if (graph) {
             setInitialConfiguration(graph, diagramRef, toolbarRef);
-            configureKeyBindings(graph);
 
             graph.getModel().endUpdate();
             graph.getSelectionModel().addListener(mxEvent.CHANGE, onSelected);
@@ -168,8 +167,6 @@ export default function App(props) {
         if (graph) {
             console.log("Graph", diagramRef.current);
             console.log("Cells", graph.model.cells);
-            // FIX: The validation happens on the next render
-            console.log("Validation result", validateGraph(diagramRef.current));
 
             updateDiagramData();
         }
@@ -889,12 +886,141 @@ export default function App(props) {
         }
     };
 
+    const renderDeleteEntity = () => {
+        const isEntity = selected?.style?.includes("shape=rectangle");
+        function deleteEntity() {
+            // Find the entity in diagramRef.current.entities
+            const entityIndex = diagramRef.current.entities.findIndex(
+                (entity) => entity.idMx === selected.id,
+            );
+
+            if (entityIndex !== -1) {
+                const entity = diagramRef.current.entities[entityIndex];
+
+                // Remove the entity from diagramRef.current.entities
+                diagramRef.current.entities.splice(entityIndex, 1);
+
+                // Find the corresponding cell in graph.model.cells
+                const cell = accessCell(entity.idMx);
+
+                if (cell) {
+                    // Remove the cell from the graph
+                    graph.removeCells([cell]);
+                }
+            }
+        }
+        if (isEntity) {
+            return (
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={deleteEntity}
+                >
+                    Borrar
+                </button>
+            );
+        }
+    };
+
+    const renderDeleteAttribute = () => {
+        const isAttribute = selected?.style?.includes("shape=ellipse");
+
+        function deleteAttribute() {
+            // Find the entity that contains the attribute
+            const entity = diagramRef.current.entities.find((entity) =>
+                entity.attributes.some((attr) => attr.idMx === selected.id),
+            );
+
+            if (entity) {
+                // Find the attribute index
+                const attrIndex = entity.attributes.findIndex(
+                    (attr) => attr.idMx === selected.id,
+                );
+
+                if (attrIndex !== -1) {
+                    const attribute = entity.attributes[attrIndex];
+
+                    // Remove the attribute from the entity
+                    entity.attributes.splice(attrIndex, 1);
+
+                    // Find the corresponding cells in graph.model.cells
+                    const cells = attribute.cell.map(
+                        (cellId) => graph.model.cells[cellId],
+                    );
+
+                    if (cells.length) {
+                        // Remove the cells from the graph
+                        graph.removeCells(cells);
+                    }
+                }
+            }
+        }
+
+        if (isAttribute) {
+            return (
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={deleteAttribute}
+                >
+                    Borrar
+                </button>
+            );
+        }
+    };
+
+    const renderDeleteRelation = () => {
+        const isRelation = selected?.style?.includes("shape=rhombus");
+
+        function deleteRelation() {
+            // Find the relation in diagramRef.current.relations
+            const relationIndex = diagramRef.current.relations.findIndex(
+                (relation) => relation.idMx === selected.id,
+            );
+
+            if (relationIndex !== -1) {
+                const relation = diagramRef.current.relations[relationIndex];
+
+                // Remove the relation from diagramRef.current.relations
+                diagramRef.current.relations.splice(relationIndex, 1);
+
+                // Find the corresponding cells in graph.model.cells
+                const cellIds = [
+                    relation.idMx,
+                    relation.side1.idMx,
+                    relation.side2.idMx,
+                ];
+                const cells = cellIds.map(
+                    (cellId) => graph.model.cells[cellId],
+                );
+
+                if (cells.length) {
+                    // Remove the cells from the graph
+                    graph.removeCells(cells);
+                }
+            }
+        }
+
+        if (isRelation) {
+            return (
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={deleteRelation}
+                >
+                    Borrar
+                </button>
+            );
+        }
+    };
+
     const renderGenerateSQLButton = () => {
         const [open, setOpen] = React.useState(false);
         const [acceptDisabled, setAcceptDisabled] = React.useState(true);
         const [validationMessage, setValidationMessage] = React.useState("");
 
         const handleClickOpen = () => {
+            setRefreshDiagram((prevState) => !prevState);
             // Validate the graph when opening the dialog
             if (validateGraph(diagramRef.current)) {
                 setAcceptDisabled(false);
@@ -976,6 +1102,68 @@ export default function App(props) {
         );
     };
 
+    const renderResetCanvasButton = () => {
+        const [open, setOpen] = React.useState(false);
+
+        const handleClickOpen = () => {
+            setOpen(true);
+        };
+
+        const handleClose = () => {
+            setOpen(false);
+        };
+
+        const handleAccept = () => {
+            console.log("Reinicio diagrama");
+            diagramRef.current.entities = [];
+            diagramRef.current.relations = [];
+
+            // Filter out cells that aren't key 0 or 1
+            const cellsToRemove = Object.keys(graph.model.cells)
+                .filter((key) => key !== "0" && key !== "1")
+                .map((key) => graph.model.cells[key]);
+
+            // Remove the filtered cells
+            graph.removeCells(cellsToRemove);
+
+            setRefreshDiagram((prevState) => !prevState);
+            setOpen(false);
+        };
+
+        return (
+            <>
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={handleClickOpen}
+                >
+                    Reiniciar
+                </button>
+                <Dialog
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">
+                        {"Reiniciar diagrama"}
+                    </DialogTitle>
+                    <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                            ¿Estás seguro de que deseas reiniciar el diagrama?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Cancelar</Button>
+                        <Button onClick={handleAccept} autoFocus>
+                            Aceptar
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </>
+        );
+    };
+
     return (
         <div className="mxgraph-container">
             <div className="mxgraph-toolbar-container">
@@ -986,8 +1174,14 @@ export default function App(props) {
                 <div>{renderToggleAttrKey()}</div>
                 <div>{renderRelationConfiguration()}</div>
                 <div>{renderRelationCardinalities()}</div>
+
+                <div>{renderDeleteEntity()}</div>
+                <div>{renderDeleteRelation()}</div>
+                <div>{renderDeleteAttribute()}</div>
+
                 <div>{renderMoveBackAndFrontButtons()}</div>
                 <div>{renderGenerateSQLButton()}</div>
+                <div>{renderResetCanvasButton()}</div>
             </div>
             <div ref={containerRef} className="mxgraph-drawing-container" />
             <Toaster position="bottom-left" />
