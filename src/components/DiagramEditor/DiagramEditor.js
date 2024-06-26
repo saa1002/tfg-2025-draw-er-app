@@ -955,53 +955,87 @@ export default function App(props) {
         let isKey;
         let isFromRelation = false;
 
-        function deleteAttribute() {
-            // Find the entity that contains the attribute
-            const entity = diagramRef.current.entities.find((entity) =>
-                entity.attributes.some((attr) => attr.idMx === selected.id),
-            );
-            for (const entity of diagramRef.current.entities) {
-                for (const attribute of entity.attributes) {
-                    if (attribute.idMx === selected?.id) {
-                        isKey = attribute.key;
-                        break; // Exit the inner loop once the matching attribute is found
-                    }
-                }
-
-                if (isKey !== undefined) {
-                    break; // Exit the outer loop once the matching attribute is found
+        for (const entity of diagramRef.current.entities) {
+            for (const attribute of entity.attributes) {
+                if (attribute.idMx === selected?.id) {
+                    isKey = attribute.key;
+                    break; // Exit the inner loop once the matching attribute is found
                 }
             }
 
-            for (const relation of diagramRef.current.relations) {
-                for (const attribute of relation.attributes) {
-                    if (attribute.idMx === selected?.id) {
-                        isFromRelation = true;
-                        break;
-                    }
+            if (isKey !== undefined) {
+                break; // Exit the outer loop once the matching attribute is found
+            }
+        }
+
+        for (const relation of diagramRef.current.relations) {
+            for (const attribute of relation.attributes) {
+                if (attribute.idMx === selected?.id) {
+                    isFromRelation = true;
+                    break;
                 }
             }
+        }
 
-            if (entity) {
-                // Find the attribute index
-                const attrIndex = entity.attributes.findIndex(
-                    (attr) => attr.idMx === selected.id,
+        function deleteAttribute(isRelation) {
+            if (!isRelation) {
+                // Find the entity that contains the attribute
+                const entity = diagramRef.current.entities.find((entity) =>
+                    entity.attributes.some((attr) => attr.idMx === selected.id),
                 );
 
-                if (attrIndex !== -1) {
-                    const attribute = entity.attributes[attrIndex];
-
-                    // Remove the attribute from the entity
-                    entity.attributes.splice(attrIndex, 1);
-
-                    // Find the corresponding cells in graph.model.cells
-                    const cells = attribute.cell.map(
-                        (cellId) => graph.model.cells[cellId],
+                if (entity) {
+                    // Find the attribute index
+                    const attrIndex = entity.attributes.findIndex(
+                        (attr) => attr.idMx === selected.id,
                     );
 
-                    if (cells.length) {
-                        // Remove the cells from the graph
-                        graph.removeCells(cells);
+                    if (attrIndex !== -1) {
+                        const attribute = entity.attributes[attrIndex];
+
+                        // Remove the attribute from the entity
+                        entity.attributes.splice(attrIndex, 1);
+
+                        // Find the corresponding cells in graph.model.cells
+                        const cells = attribute.cell.map(
+                            (cellId) => graph.model.cells[cellId],
+                        );
+
+                        if (cells.length) {
+                            // Remove the cells from the graph
+                            graph.removeCells(cells);
+                        }
+                    }
+                }
+            } else {
+                // Find the relation that contains the attribute
+                const relation = diagramRef.current.relations.find((relation) =>
+                    relation.attributes.some(
+                        (attr) => attr.idMx === selected.id,
+                    ),
+                );
+
+                if (relation) {
+                    // Find the attribute index
+                    const attrIndex = relation.attributes.findIndex(
+                        (attr) => attr.idMx === selected.id,
+                    );
+
+                    if (attrIndex !== -1) {
+                        const attribute = relation.attributes[attrIndex];
+
+                        // Remove the attribute from the relation
+                        relation.attributes.splice(attrIndex, 1);
+
+                        // Find the corresponding cells in graph.model.cells
+                        const cells = attribute.cell.map(
+                            (cellId) => graph.model.cells[cellId],
+                        );
+
+                        if (cells.length) {
+                            // Remove the cells from the graph
+                            graph.removeCells(cells);
+                        }
                     }
                 }
             }
@@ -1015,7 +1049,7 @@ export default function App(props) {
                 <button
                     type="button"
                     className="button-toolbar-action"
-                    onClick={deleteAttribute}
+                    onClick={() => deleteAttribute(isFromRelation)}
                 >
                     Borrar
                 </button>
