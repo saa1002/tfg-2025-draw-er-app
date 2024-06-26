@@ -1254,10 +1254,12 @@ export default function App(props) {
         <div className="mxgraph-container">
             <div className="mxgraph-toolbar-container">
                 <div className="mxgraph-toolbar-container" ref={toolbarRef} />
+
                 <div>{renderAddAttribute()}</div>
                 <div>{renderRelationAddAttribute()}</div>
                 <div>{renderToggleAttributes()}</div>
                 <div>{renderToggleAttrKey()}</div>
+
                 <div>{renderRelationConfiguration()}</div>
                 <div>{renderRelationCardinalities()}</div>
 
@@ -1266,6 +1268,7 @@ export default function App(props) {
                 <div>{renderDeleteAttribute()}</div>
 
                 <div>{renderMoveBackAndFrontButtons()}</div>
+
                 <div>{renderGenerateSQLButton()}</div>
                 <div>{renderResetCanvasButton()}</div>
             </div>
