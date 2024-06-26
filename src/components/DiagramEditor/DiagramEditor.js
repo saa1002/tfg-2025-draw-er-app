@@ -93,7 +93,6 @@ export default function App(props) {
         if (graph) {
             // Override the isCellSelectable function
             mxGraph.prototype.isCellSelectable = function (cell) {
-                console.log(cell);
                 // Check if the cell is an edge, return false if it is
                 if (this.model.isEdge(cell)) {
                     return false;
@@ -176,9 +175,6 @@ export default function App(props) {
 
     React.useEffect(() => {
         if (graph) {
-            console.log("Graph", diagramRef.current);
-            console.log("Cells", graph.model.cells);
-
             updateDiagramData();
         }
     }, [graph, selected, refreshDiagram, diagramRef]);
@@ -525,11 +521,9 @@ export default function App(props) {
 
         const handleAccept = () => {
             const source = selected;
-            console.log(source.id);
             const relation = diagramRef.current.relations.find(
                 (relation) => relation.idMx === source.id,
             );
-            console.log(relation);
 
             if (relation.side1.idMx !== "" && relation.side2.idMx !== "") {
                 // Find the previous edges
@@ -1199,7 +1193,6 @@ export default function App(props) {
         };
 
         const handleAccept = () => {
-            console.log("Reinicio diagrama");
             diagramRef.current.entities = [];
             diagramRef.current.relations = [];
 
