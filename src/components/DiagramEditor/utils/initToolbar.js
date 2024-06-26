@@ -87,11 +87,4 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
         false, //addEntityToDiagram
         true, //addRelationToDiagram
     );
-    // addVertex(
-    //     "images/text.gif",
-    //     0,
-    //     0,
-    //     "text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];",
-    //     "Text",
-    // );
 }
