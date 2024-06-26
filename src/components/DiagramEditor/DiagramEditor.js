@@ -923,15 +923,61 @@ export default function App(props) {
                 const cell = accessCell(entity.idMx);
 
                 if (cell) {
-                    // Remove the attributes associated with the entity
+                    // Collect the attribute cells to delete
                     const attributeCells = entity.attributes.flatMap((attr) => {
-                        // NOTE: Seems that we only need to delete the label and ellipse
-                        // because the edge is deleted when deleting the parent object
                         return accessCell(attr.cell.at(0));
                     });
 
-                    // Remove the cell and its attributes from the graph
+                    // Remove the entity's cell and its attributes from the graph
                     graph.removeCells([cell, ...attributeCells]);
+
+                    // Check and remove relations involving this entity
+                    diagramRef.current.relations.forEach((relation, index) => {
+                        if (
+                            relation.side1.entity.idMx === entity.idMx ||
+                            relation.side2.entity.idMx === entity.idMx
+                        ) {
+                            // Find the corresponding cells in graph.model.cells for the relation
+                            const side1Cell = accessCell(relation.side1.cell);
+                            const side2Cell = accessCell(relation.side2.cell);
+                            const edge1Cell = accessCell(relation.side1.edgeId);
+                            const edge2Cell = accessCell(relation.side2.edgeId);
+
+                            // Collect the relation's attribute cells to delete
+                            const relationAttributeCells =
+                                relation.attributes.flatMap((attr) =>
+                                    accessCell(attr.cell.at(0)),
+                                );
+
+                            // Remove the relation's cells and its attributes from the graph
+                            graph.removeCells([
+                                side1Cell,
+                                side2Cell,
+                                edge1Cell,
+                                edge2Cell,
+                                ...relationAttributeCells,
+                            ]);
+
+                            // Reinitialize the relation sides
+                            diagramRef.current.relations[index].side1 = {
+                                idMx: "",
+                                cardinality: "",
+                                cell: "",
+                                edgeId: "",
+                                entity: { idMx: "" },
+                            };
+                            diagramRef.current.relations[index].side2 = {
+                                idMx: "",
+                                cardinality: "",
+                                cell: "",
+                                edgeId: "",
+                                entity: { idMx: "" },
+                            };
+                            diagramRef.current.relations[
+                                index
+                            ].canHoldAttributes = false;
+                        }
+                    });
                 }
             }
         }
