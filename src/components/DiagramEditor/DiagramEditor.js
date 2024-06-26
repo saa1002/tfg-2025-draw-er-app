@@ -837,18 +837,18 @@ export default function App(props) {
                                             label="Cardinalidad 1"
                                             onChange={handleChangeSide1}
                                         >
-                                            {POSSIBLE_CARDINALITIES.map(
-                                                (cardinality) => {
-                                                    return (
-                                                        <MenuItem
-                                                            key={cardinality}
-                                                            value={cardinality}
-                                                        >
-                                                            {cardinality}
-                                                        </MenuItem>
-                                                    );
-                                                },
-                                            )}
+                                            {POSSIBLE_CARDINALITIES.filter(
+                                                (cardinality) =>
+                                                    cardinality !== "1:1" ||
+                                                    side2 !== "1:1",
+                                            ).map((cardinality) => (
+                                                <MenuItem
+                                                    key={cardinality}
+                                                    value={cardinality}
+                                                >
+                                                    {cardinality}
+                                                </MenuItem>
+                                            ))}
                                         </Select>
                                     </FormControl>
                                     <Box sx={{ minHeight: 10 }} />
@@ -872,18 +872,18 @@ export default function App(props) {
                                             label="Cardinalidad 2"
                                             onChange={handleChangeSide2}
                                         >
-                                            {POSSIBLE_CARDINALITIES.map(
-                                                (cardinality) => {
-                                                    return (
-                                                        <MenuItem
-                                                            key={cardinality}
-                                                            value={cardinality}
-                                                        >
-                                                            {cardinality}
-                                                        </MenuItem>
-                                                    );
-                                                },
-                                            )}
+                                            {POSSIBLE_CARDINALITIES.filter(
+                                                (cardinality) =>
+                                                    cardinality !== "1:1" ||
+                                                    side1 !== "1:1",
+                                            ).map((cardinality) => (
+                                                <MenuItem
+                                                    key={cardinality}
+                                                    value={cardinality}
+                                                >
+                                                    {cardinality}
+                                                </MenuItem>
+                                            ))}
                                         </Select>
                                     </FormControl>
                                 </Box>
