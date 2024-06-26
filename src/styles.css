@@ -5,6 +5,10 @@
   align-items: center;
 }
 
+.mxToolbarMode:hover {
+    cursor: move;
+}
+
 .container {
   height: 50vh;
   min-height: 600px;
