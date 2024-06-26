@@ -923,8 +923,15 @@ export default function App(props) {
                 const cell = accessCell(entity.idMx);
 
                 if (cell) {
-                    // Remove the cell from the graph
-                    graph.removeCells([cell]);
+                    // Remove the attributes associated with the entity
+                    const attributeCells = entity.attributes.flatMap((attr) => {
+                        // NOTE: Seems that we only need to delete the label and ellipse
+                        // because the edge is deleted when deleting the parent object
+                        return accessCell(attr.cell.at(0));
+                    });
+
+                    // Remove the cell and its attributes from the graph
+                    graph.removeCells([cell, ...attributeCells]);
                 }
             }
         }
@@ -1063,19 +1070,20 @@ export default function App(props) {
                 // Remove the relation from diagramRef.current.relations
                 diagramRef.current.relations.splice(relationIndex, 1);
 
-                // Find the corresponding cells in graph.model.cells
-                const cellIds = [
-                    relation.idMx,
-                    relation.side1.idMx,
-                    relation.side2.idMx,
-                ];
-                const cells = cellIds.map(
-                    (cellId) => graph.model.cells[cellId],
-                );
+                const cell = accessCell(relation.idMx);
 
-                if (cells.length) {
-                    // Remove the cells from the graph
-                    graph.removeCells(cells);
+                if (cell) {
+                    // Remove the attributes associated with the entity
+                    const attributeCells = relation.attributes.flatMap(
+                        (attr) => {
+                            // NOTE: Seems that we only need to delete the label and ellipse
+                            // because the edge is deleted when deleting the parent object
+                            return accessCell(attr.cell.at(0));
+                        },
+                    );
+
+                    // Remove the cell and its attributes from the graph
+                    graph.removeCells([cell, ...attributeCells]);
                 }
             }
         }
