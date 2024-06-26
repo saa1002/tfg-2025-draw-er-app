@@ -92,6 +92,18 @@ export default function App(props) {
             setGraph(new mxGraph(containerRef.current));
         }
         if (graph) {
+            // Override the isCellSelectable function
+            mxGraph.prototype.isCellSelectable = function (cell) {
+                console.log(cell);
+                // Check if the cell is an edge, return false if it is
+                if (this.model.isEdge(cell)) {
+                    return false;
+                }
+
+                // Default behavior for other cells
+                return this.isCellsSelectable() && !this.isCellLocked(cell);
+            };
+
             setInitialConfiguration(graph, diagramRef, toolbarRef);
 
             graph.getModel().endUpdate();
@@ -232,19 +244,6 @@ export default function App(props) {
                 addPrimaryAttrRef.current && !isRelation ? "keyAttrStyle" : ""
             }`,
         );
-
-        // TODO: Protect attributes edges to be reassigned
-        // graph.addListener(mxEvent.CONNECT, function (sender, evt) {
-        //     var connection = evt.getProperty("connection");
-        //     var source = connection.getSource();
-        //     var target = connection.getTarget();
-        //
-        //     // Check if the source and target are the ones you want to lock
-        //     if (source === lockedSource || target === lockedTarget) {
-        //         // Prevent the connection
-        //         evt.consume();
-        //     }
-        // });
 
         graph.insertEdge(selected, null, null, source, target);
         graph.orderCells(false); // Move front the selected entity so the new vertex aren't on top
@@ -559,7 +558,6 @@ export default function App(props) {
             const target1 = accessCell(side1.idMx);
             const target2 = accessCell(side2.idMx);
 
-            // TODO: Proteger estos edges contra escritura de labels y borrado
             const edge1 = graph.insertEdge(
                 selected,
                 null,
