@@ -952,12 +952,35 @@ export default function App(props) {
 
     const renderDeleteAttribute = () => {
         const isAttribute = selected?.style?.includes("shape=ellipse");
+        let isKey;
+        let isFromRelation = false;
 
         function deleteAttribute() {
             // Find the entity that contains the attribute
             const entity = diagramRef.current.entities.find((entity) =>
                 entity.attributes.some((attr) => attr.idMx === selected.id),
             );
+            for (const entity of diagramRef.current.entities) {
+                for (const attribute of entity.attributes) {
+                    if (attribute.idMx === selected?.id) {
+                        isKey = attribute.key;
+                        break; // Exit the inner loop once the matching attribute is found
+                    }
+                }
+
+                if (isKey !== undefined) {
+                    break; // Exit the outer loop once the matching attribute is found
+                }
+            }
+
+            for (const relation of diagramRef.current.relations) {
+                for (const attribute of relation.attributes) {
+                    if (attribute.idMx === selected?.id) {
+                        isFromRelation = true;
+                        break;
+                    }
+                }
+            }
 
             if (entity) {
                 // Find the attribute index
@@ -984,7 +1007,10 @@ export default function App(props) {
             }
         }
 
-        if (isAttribute) {
+        if (
+            (isAttribute && !isKey && !isFromRelation) ||
+            (isAttribute && isFromRelation)
+        ) {
             return (
                 <button
                     type="button"
