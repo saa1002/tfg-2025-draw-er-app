@@ -10,8 +10,7 @@
 }
 
 .container {
-  height: 50vh;
-  min-height: 600px;
-  min-width: 800px;
+  height: 90vh; /* 90% of the viewport height */
+  width: 100%; /* Full width available */
   overflow: hidden;
 }
