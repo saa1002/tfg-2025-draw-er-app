@@ -748,6 +748,8 @@ export default function App(props) {
 
             if (side1.endsWith(":N") && side2.endsWith(":N")) {
                 selectedDiag.canHoldAttributes = true;
+            } else {
+                selectedDiag.canHoldAttributes = false;
             }
 
             const label1 = accessCell(selectedDiag.side1.cell);
