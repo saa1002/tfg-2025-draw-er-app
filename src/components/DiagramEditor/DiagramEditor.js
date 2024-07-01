@@ -63,24 +63,6 @@ export default function App(props) {
         [props],
     );
 
-    const onElementAdd = React.useCallback(
-        (evt) => {
-            if (props.onElementAdd) {
-                props.onElementAdd(evt);
-            }
-        },
-        [props],
-    );
-
-    const onDragEnd = React.useCallback(
-        (evt) => {
-            if (props.onDragEnd) {
-                props.onDragEnd(evt);
-            }
-        },
-        [props],
-    );
-
     function accessCell(idMx) {
         return graph.model.cells[idMx];
     }
@@ -106,8 +88,6 @@ export default function App(props) {
 
             graph.getModel().endUpdate();
             graph.getSelectionModel().addListener(mxEvent.CHANGE, onSelected);
-            graph.getModel().addListener(mxEvent.ADD, onElementAdd);
-            graph.getModel().addListener(mxEvent.MOVE_END, onDragEnd);
 
             graph.stylesheet.styles.defaultEdge.endArrow = ""; // NOTE: Edges are not directed
             graph
@@ -123,12 +103,10 @@ export default function App(props) {
                 .putCellStyle("transparentColor", transparentColor);
             // Cleanup function to remove the listener
             return () => {
-                graph.getModel().removeListener(mxEvent.ADD, onSelected);
-                graph.getModel().removeListener(mxEvent.MOVE_END, onElementAdd);
                 graph.getModel().removeListener(mxEvent.CHANGE, onSelected);
             };
         }
-    }, [graph, onSelected, onElementAdd, onDragEnd]);
+    }, [graph, onSelected]);
 
     const updateEntityAttributes = (entity) => {
         if (entity.attributes) {
@@ -173,9 +151,85 @@ export default function App(props) {
         });
     };
 
+    const onCellsMoved = (_evt) => {
+        if (selected) {
+            if (selected?.style?.includes("shape=rectangle")) {
+                const selectedEntityDiag = diagramRef.current.entities.find(
+                    (entity) => entity.idMx === selected.id,
+                );
+
+                selectedEntityDiag.attributes.forEach((attribute) => {
+                    accessCell(attribute.cell.at(0)).geometry.x =
+                        selected.geometry.x + attribute.offsetX;
+                    accessCell(attribute.cell.at(0)).geometry.y =
+                        selected.geometry.y + attribute.offsetY;
+                });
+                // NOTE: Refresh the graph to visually update the cell values
+                const graphView = graph.getDefaultParent();
+                const view = graph.getView(graphView);
+                view.refresh();
+            } else if (selected?.style?.includes("shape=rhombus")) {
+                const selectedRelationDiag = diagramRef.current.relations.find(
+                    (relation) => relation.idMx === selected.id,
+                );
+                if (selectedRelationDiag.canHoldAttributes) {
+                    selectedRelationDiag.attributes.forEach((attribute) => {
+                        accessCell(attribute.cell.at(0)).geometry.x =
+                            selected.geometry.x + attribute.offsetX;
+                        accessCell(attribute.cell.at(0)).geometry.y =
+                            selected.geometry.y + attribute.offsetY;
+                    });
+                    // NOTE: Refresh the graph to visually update the cell values
+                    const graphView = graph.getDefaultParent();
+                    const view = graph.getView(graphView);
+                    view.refresh();
+                }
+            } else if (selected?.style?.includes("shape=ellipse")) {
+                let parentEntity = diagramRef.current.entities.find((entity) =>
+                    entity.attributes.some((attr) => attr.idMx === selected.id),
+                );
+                // If no parent entity found, check if it's an N:M relation
+                if (!parentEntity) {
+                    parentEntity = diagramRef.current.relations.find(
+                        (relation) =>
+                            relation.attributes.some(
+                                (attr) => attr.idMx === selected.id,
+                            ),
+                    );
+                }
+
+                if (parentEntity) {
+                    const attribute = parentEntity.attributes.find(
+                        (attr) => attr.idMx === selected.id,
+                    );
+
+                    if (attribute) {
+                        // Update offset
+                        attribute.offsetX =
+                            selected.geometry.x - parentEntity.position.x;
+                        attribute.offsetY =
+                            selected.geometry.y - parentEntity.position.y;
+                    }
+                }
+            }
+        }
+    };
+
     React.useEffect(() => {
         if (graph) {
+            // Define the listener as a function to refer it for removal
+            const handleCellsMoved = (evt) => {
+                onCellsMoved(evt);
+            };
+            // Add the listener
+            graph.addListener(mxEvent.CELLS_MOVED, handleCellsMoved);
+
             updateDiagramData();
+
+            // Cleanup function to remove the listener
+            return () => {
+                graph.removeListener(handleCellsMoved, mxEvent.CELLS_MOVED);
+            };
         }
     }, [graph, selected, refreshDiagram, diagramRef]);
 
@@ -200,8 +254,20 @@ export default function App(props) {
         addPrimaryAttrRef.current = addKey;
         const source = selected;
 
-        const newX = selected.geometry.x + 120;
-        const newY = selected.geometry.y;
+        // Initial offset
+        let offsetX = 120;
+        let offsetY = -40;
+
+        if (selectedDiag?.attributes?.length) {
+            const lastAttribute =
+                selectedDiag.attributes[selectedDiag.attributes.length - 1];
+            const lastAttrCell = graph.getModel().getCell(lastAttribute.idMx);
+            offsetX = lastAttrCell.geometry.x - source.geometry.x;
+            offsetY = lastAttrCell.geometry.y - source.geometry.y + 20;
+        }
+
+        const newX = selected.geometry.x + offsetX;
+        const newY = selected.geometry.y + offsetY;
 
         // Function to generate a unique attribute name
         const generateUniqueAttributeName = (baseName, existingAttributes) => {
@@ -256,6 +322,8 @@ export default function App(props) {
                     },
                     key: addPrimaryAttrRef.current,
                     cell: [target.id, String(+target.id + 1)],
+                    offsetX: target.geometry.x - selected.geometry.x,
+                    offsetY: target.geometry.y - selected.geometry.y,
                 });
         } else if (isRelation) {
             // Update diagram state
@@ -269,10 +337,12 @@ export default function App(props) {
                         y: target.geometry.y,
                     },
                     cell: [target.id, String(+target.id + 1)],
+                    offsetX: target.geometry.x - selected.geometry.x,
+                    offsetY: target.geometry.y - selected.geometry.y,
                 });
         }
         toast.success("Atributo insertado");
-        // TODO: Increment the offset so that new attributes are not added on top of others
+        // TODO:  Increment the offset so that new attributes are not added on top of others
     };
 
     const hideAttributes = (isRelationNM) => {
@@ -287,7 +357,6 @@ export default function App(props) {
             accessCell(cell.at(0)).setVisible(false);
             accessCell(cell.at(1)).setVisible(false);
         });
-        // graph.removeCells(mxAttributesToRemove);
         // NOTE: Refresh the graph to visually update the cell values
         const graphView = graph.getDefaultParent();
         const view = graph.getView(graphView);
