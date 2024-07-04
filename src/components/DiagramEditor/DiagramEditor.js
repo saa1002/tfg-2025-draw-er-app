@@ -67,6 +67,148 @@ export default function App(props) {
         return graph.model.cells[idMx];
     }
 
+    const saveToLocalStorage = () => {
+        const diagramData = JSON.stringify(diagramRef.current);
+        localStorage.setItem("diagramData", diagramData);
+    };
+
+    const recreateGraphFromLocalStorage = () => {
+        const recreateAttribute = (attribute, source) => {
+            let target;
+            let edge;
+            // Recreate attribute
+            target = graph.insertVertex(
+                null,
+                attribute.idMx,
+                attribute.name,
+                attribute.position.x,
+                attribute.position.y,
+                10,
+                10,
+                `shape=ellipse;rightLabelStyle;notResizeableStyle;transparentColor;${
+                    attribute.key ? "keyAttrStyle" : ""
+                }`,
+            );
+            edge = graph.insertEdge(
+                source,
+                String(+target.id + 1),
+                null,
+                source,
+                target,
+            );
+            graph.orderCells(true, [edge]); // Move front the selected entity so the new vertex aren't on top
+        };
+        const recreateEntity = (entity) => {
+            const source = graph.insertVertex(
+                null,
+                entity.idMx,
+                entity.name,
+                entity.position.x,
+                entity.position.y,
+                100,
+                40,
+                ";shape=rectangle;verticalAlign=middle;align=center;fillColor=#C3D9FF;strokeColor=#6482B9;fontColor=#774400",
+            );
+            for (const attribute of entity.attributes) {
+                recreateAttribute(attribute, source);
+            }
+        };
+
+        const recreateRelation = (relation) => {
+            const source = graph.insertVertex(
+                null,
+                relation.idMx,
+                relation.name,
+                relation.position.x,
+                relation.position.y,
+                100,
+                40,
+                ";shape=rhombus;verticalAlign=middle;align=center;fillColor=#C3D9FF;strokeColor=#6482B9;fontColor=#774400",
+            );
+            for (const attribute of relation.attributes) {
+                recreateAttribute(attribute, source);
+            }
+
+            if (relation.side1.idMx !== "" && relation.side2.idMx !== "") {
+                const target1 = accessCell(relation.side1.entity.idMx);
+                const target2 = accessCell(relation.side2.entity.idMx);
+
+                const edge1 = graph.insertEdge(
+                    source,
+                    relation.side1.edgeId, // id
+                    null,
+                    source,
+                    target1,
+                );
+                const edge2 = graph.insertEdge(
+                    source,
+                    relation.side2.edgeId, // id
+                    null,
+                    source,
+                    target2,
+                );
+                const cardinality1 = graph.insertVertex(
+                    edge1,
+                    relation.side1.cell,
+                    relation.side1.cardinality === ""
+                        ? "X:X"
+                        : relation.side1.cardinality,
+                    0,
+                    0,
+                    1,
+                    1,
+                    "fontSize=12;fontColor=#000000;fillColor=#ffffff;strokeColor=none;rounded=1;arcSize=25;strokeWidth=3;",
+                    true,
+                );
+                const cardinality2 = graph.insertVertex(
+                    edge2,
+                    relation.side2.cell,
+                    relation.side2.cardinality === ""
+                        ? "X:X"
+                        : relation.side2.cardinality,
+                    0,
+                    0,
+                    1,
+                    1,
+                    "fontSize=12;fontColor=#000000;fillColor=#ffffff;strokeColor=none;rounded=1;arcSize=25;strokeWidth=3;",
+                    true,
+                );
+                graph.updateCellSize(cardinality1);
+                graph.updateCellSize(cardinality2);
+                if (target1 && target2) {
+                    if (target1.id === target2.id) {
+                        const x1 =
+                            target1.geometry.x + target1.geometry.width / 2;
+                        const x2 =
+                            source.geometry.x + source.geometry.width / 2;
+                        const y1 =
+                            target1.geometry.y + target1.geometry.height / 2;
+                        const y2 =
+                            source.geometry.y + source.geometry.height / 2;
+
+                        edge1.geometry.points = [new mxPoint(x2, y1)];
+                        edge2.geometry.points = [new mxPoint(x1, y2)];
+                    }
+                }
+                graph.orderCells(true, [edge1, edge2]); // Move front the selected entity so the new vertex aren't on top
+            }
+        };
+
+        // Recreate the graph
+        if (localStorage.getItem("diagramData")) {
+            const savedData = JSON.parse(localStorage.getItem("diagramData"));
+            diagramRef.current = savedData; // Deep clone the saved data
+
+            for (const entity of diagramRef.current.entities) {
+                recreateEntity(entity);
+            }
+
+            for (const relation of diagramRef.current.relations) {
+                recreateRelation(relation);
+            }
+        }
+    };
+
     React.useEffect(() => {
         if (!graph) {
             mxEvent.disableContextMenu(containerRef.current);
@@ -101,7 +243,9 @@ export default function App(props) {
             graph
                 .getStylesheet()
                 .putCellStyle("transparentColor", transparentColor);
-            // Cleanup function to remove the listener
+
+            recreateGraphFromLocalStorage();
+
             return () => {
                 graph.getModel().removeListener(mxEvent.CHANGE, onSelected);
             };
@@ -149,6 +293,7 @@ export default function App(props) {
                 updateEntityAttributes(relation);
             }
         });
+        saveToLocalStorage();
     };
 
     const onCellsMoved = (_evt) => {
@@ -158,7 +303,7 @@ export default function App(props) {
                     (entity) => entity.idMx === selected.id,
                 );
 
-                selectedEntityDiag.attributes.forEach((attribute) => {
+                selectedEntityDiag?.attributes.forEach((attribute) => {
                     accessCell(attribute.cell.at(0)).geometry.x =
                         selected.geometry.x + attribute.offsetX;
                     accessCell(attribute.cell.at(0)).geometry.y =
@@ -173,7 +318,7 @@ export default function App(props) {
                     (relation) => relation.idMx === selected.id,
                 );
                 if (selectedRelationDiag.canHoldAttributes) {
-                    selectedRelationDiag.attributes.forEach((attribute) => {
+                    selectedRelationDiag?.attributes.forEach((attribute) => {
                         accessCell(attribute.cell.at(0)).geometry.x =
                             selected.geometry.x + attribute.offsetX;
                         accessCell(attribute.cell.at(0)).geometry.y =
@@ -183,6 +328,27 @@ export default function App(props) {
                     const graphView = graph.getDefaultParent();
                     const view = graph.getView(graphView);
                     view.refresh();
+                }
+                if (
+                    selectedRelationDiag.side1.entity.idMx !== "" &&
+                    selectedRelationDiag.side2.entity.idMx !== "" &&
+                    selectedRelationDiag.side1.entity.idMx ===
+                        selectedRelationDiag.side2.entity.idMx
+                ) {
+                    const target1 = accessCell(
+                        selectedRelationDiag.side1.entity.idMx,
+                    );
+                    const source = selected;
+                    const edge1 = accessCell(selectedRelationDiag.side1.edgeId);
+                    const edge2 = accessCell(selectedRelationDiag.side2.edgeId);
+
+                    const x1 = target1.geometry.x + target1.geometry.width / 2;
+                    const x2 = source.geometry.x + source.geometry.width / 2;
+                    const y1 = target1.geometry.y + target1.geometry.height / 2;
+                    const y2 = source.geometry.y + source.geometry.height / 2;
+
+                    edge1.geometry.points = [new mxPoint(x2, y1)];
+                    edge2.geometry.points = [new mxPoint(x1, y2)];
                 }
             } else if (selected?.style?.includes("shape=ellipse")) {
                 let parentEntity = diagramRef.current.entities.find((entity) =>
@@ -213,6 +379,8 @@ export default function App(props) {
                 }
             }
         }
+        // Ensure that the diagram is updated before
+        updateDiagramData();
     };
 
     React.useEffect(() => {
@@ -225,13 +393,15 @@ export default function App(props) {
             graph.addListener(mxEvent.CELLS_MOVED, handleCellsMoved);
 
             updateDiagramData();
+            console.log(diagramRef.current);
+            console.log(graph.model.cells);
 
             // Cleanup function to remove the listener
             return () => {
                 graph.removeListener(handleCellsMoved, mxEvent.CELLS_MOVED);
             };
         }
-    }, [graph, selected, refreshDiagram, diagramRef]);
+    }, [graph, selected, diagramRef, refreshDiagram]);
 
     const pushCellsBack = (moveBack) => () => {
         graph.orderCells(moveBack);
@@ -341,6 +511,7 @@ export default function App(props) {
                     offsetY: target.geometry.y - selected.geometry.y,
                 });
         }
+        updateDiagramData();
         toast.success("Atributo insertado");
         // TODO:  Increment the offset so that new attributes are not added on top of others
     };
@@ -427,9 +598,6 @@ export default function App(props) {
                 cellsToRecreate.push(accessCell(attribute.cell.at(1)));
             });
 
-        // FIX: Removing the cells and then adding may not work
-        // The easiest way to change the style it's to modify it and then
-        // remove the old cells and create the modified ones
         graph.removeCells(cellsToDelete);
         graph.addCells(cellsToRecreate);
         graph.orderCells(true, cellsToRecreate);
@@ -875,6 +1043,7 @@ export default function App(props) {
             setSide1("");
             setSide2("");
             setOpen(false);
+            updateDiagramData();
         };
 
         const [side1, setSide1] = React.useState("");
@@ -1092,6 +1261,7 @@ export default function App(props) {
                     });
                 }
             }
+            updateDiagramData();
         }
         if (isEntity) {
             return (
@@ -1195,6 +1365,7 @@ export default function App(props) {
                     }
                 }
             }
+            updateDiagramData();
         }
 
         if (
@@ -1244,6 +1415,7 @@ export default function App(props) {
                     graph.removeCells([cell, ...attributeCells]);
                 }
             }
+            updateDiagramData();
         }
 
         if (isRelation) {
@@ -1371,6 +1543,221 @@ export default function App(props) {
         );
     };
 
+    const renderExportJSONButton = () => {
+        const [open, setOpen] = React.useState(false);
+        const [acceptDisabled, setAcceptDisabled] = React.useState(true);
+        const [validationMessages, setValidationMessages] = React.useState([]);
+
+        const handleClickOpen = () => {
+            setRefreshDiagram((prevState) => !prevState);
+            const diagnostics = validateGraph(diagramRef.current);
+
+            if (diagnostics.isValid) {
+                setAcceptDisabled(false);
+                setValidationMessages([
+                    "¿Deseas exportar el diagrama en formato JSON?",
+                ]);
+            } else {
+                setAcceptDisabled(true);
+                const messages = [
+                    "No se ha podido exportar el diagrama en formato JSON por los siguientes errores:",
+                ];
+                if (!diagnostics.notEmpty)
+                    messages.push("El diagrama está vacío.");
+                if (!diagnostics.noRepeatedNames)
+                    messages.push("Hay entidades con nombres repetidos.");
+                if (!diagnostics.noRepeatedAttrNames)
+                    messages.push("Hay atributos repetidos en una entidad.");
+                if (!diagnostics.noEntitiesWithoutAttributes)
+                    messages.push("Hay entidades sin atributos.");
+                if (!diagnostics.noEntitiesWithoutPK)
+                    messages.push("Hay entidades sin clave primaria.");
+                if (!diagnostics.noUnconnectedRelations)
+                    messages.push("Hay relaciones desconectadas.");
+                if (!diagnostics.noNotValidCardinalities)
+                    messages.push(
+                        "Hay cardinalidades no válidas en las relaciones.",
+                    );
+                setValidationMessages(messages);
+            }
+            setOpen(true);
+        };
+
+        const handleClose = () => {
+            setOpen(false);
+        };
+
+        const handleAccept = () => {
+            setOpen(false);
+            const jsonString = JSON.stringify(diagramRef.current);
+
+            // Create a blob with the JSON string
+            const blob = new Blob([jsonString], { type: "application/json" });
+
+            // Create a link element
+            const link = document.createElement("a");
+
+            // Set the download attribute with a filename
+            link.download = "diagram.json";
+
+            // Create a URL for the blob and set it as the href attribute
+            link.href = window.URL.createObjectURL(blob);
+
+            // Append the link to the body
+            document.body.appendChild(link);
+
+            // Programmatically click the link to trigger the download
+            link.click();
+
+            // Remove the link from the document
+            document.body.removeChild(link);
+        };
+
+        return (
+            <>
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={handleClickOpen}
+                >
+                    Exportar JSON
+                </button>
+                <Dialog
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">
+                        {"Exportación diagrama en JSON"}
+                    </DialogTitle>
+                    <DialogContent>
+                        {validationMessages.map((message) => (
+                            <DialogContentText key={message}>
+                                {message}
+                            </DialogContentText>
+                        ))}
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Cancelar</Button>
+                        <Button
+                            onClick={handleAccept}
+                            autoFocus
+                            disabled={acceptDisabled}
+                        >
+                            Aceptar
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </>
+        );
+    };
+
+    const renderImportJSONButton = () => {
+        const [open, setOpen] = React.useState(false);
+        const [validationMessages, setValidationMessages] = React.useState([]);
+
+        const handleClickOpen = () => {
+            setOpen(true);
+        };
+
+        const handleClose = () => {
+            setOpen(false);
+        };
+
+        const handleFileChange = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedDiagram = JSON.parse(e.target.result);
+                        const diagnostics = validateGraph(importedDiagram);
+
+                        if (diagnostics.isValid) {
+                            localStorage.setItem(
+                                "diagramData",
+                                JSON.stringify(importedDiagram),
+                            );
+                            recreateGraphFromLocalStorage();
+                            setOpen(false);
+                            toast.success("Diagrama importado con éxito.");
+                        } else {
+                            const messages = [
+                                "No se ha podido importar el diagrama por los siguientes errores:",
+                            ];
+                            if (!diagnostics.notEmpty)
+                                messages.push("El diagrama está vacío.");
+                            if (!diagnostics.noRepeatedNames)
+                                messages.push(
+                                    "Hay entidades con nombres repetidos.",
+                                );
+                            if (!diagnostics.noRepeatedAttrNames)
+                                messages.push(
+                                    "Hay atributos repetidos en una entidad.",
+                                );
+                            if (!diagnostics.noEntitiesWithoutAttributes)
+                                messages.push("Hay entidades sin atributos.");
+                            if (!diagnostics.noEntitiesWithoutPK)
+                                messages.push(
+                                    "Hay entidades sin clave primaria.",
+                                );
+                            if (!diagnostics.noUnconnectedRelations)
+                                messages.push("Hay relaciones desconectadas.");
+                            if (!diagnostics.noNotValidCardinalities)
+                                messages.push(
+                                    "Hay cardinalidades no válidas en las relaciones.",
+                                );
+                            setValidationMessages(messages);
+                        }
+                    } catch (error) {
+                        setValidationMessages([
+                            "Error al leer el archivo JSON.",
+                        ]);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        };
+
+        return (
+            <>
+                <button
+                    type="button"
+                    className="button-toolbar-action"
+                    onClick={handleClickOpen}
+                >
+                    Importar JSON
+                </button>
+                <Dialog
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogTitle id="alert-dialog-title">
+                        {"Importación de diagrama desde JSON"}
+                    </DialogTitle>
+                    <DialogContent>
+                        {validationMessages.map((message) => (
+                            <DialogContentText key={message}>
+                                {message}
+                            </DialogContentText>
+                        ))}
+                        <input
+                            type="file"
+                            accept="application/json"
+                            onChange={handleFileChange}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Cancelar</Button>
+                    </DialogActions>
+                </Dialog>
+            </>
+        );
+    };
+
     const renderResetCanvasButton = () => {
         const [open, setOpen] = React.useState(false);
 
@@ -1385,6 +1772,7 @@ export default function App(props) {
         const handleAccept = () => {
             diagramRef.current.entities = [];
             diagramRef.current.relations = [];
+            localStorage.removeItem("diagramData");
 
             // Filter out cells that aren't key 0 or 1
             const cellsToRemove = Object.keys(graph.model.cells)
@@ -1452,6 +1840,8 @@ export default function App(props) {
                 <div>{renderMoveBackAndFrontButtons()}</div>
 
                 <div>{renderGenerateSQLButton()}</div>
+                <div>{renderExportJSONButton()}</div>
+                <div>{renderImportJSONButton()}</div>
                 <div>{renderResetCanvasButton()}</div>
             </div>
             <div ref={containerRef} className="mxgraph-drawing-container" />
