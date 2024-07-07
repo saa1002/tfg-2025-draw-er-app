@@ -8,6 +8,8 @@
 \usepackage{lmodern} % Scalable font
 \usepackage{microtype}
 \usepackage{placeins}
+\usepackage{listings}
+\usepackage{listingsutf8}
 
 \RequirePackage{booktabs}
 \RequirePackage[table]{xcolor}
@@ -352,12 +354,12 @@
   }
 \makeatother
 
-\newcommand{\nombre}{Nombre del alumno} %%% cambio de comando
+\newcommand{\nombre}{Rubén Maté Iturriaga} %%% cambio de comando
 
 % Datos de portada
-\title{título del TFG}
+\title{Draw Entity-Relation App}
 \author{\nombre}
-\tutor{nombre tutor}
+\tutor{Jesús Manuel Maudes Raedo}
 \date{\today}
 
 \begin{document}
@@ -374,11 +376,11 @@
 
 \noindent\includegraphics[width=\textwidth]{cabecera}\vspace{1cm}
 
-\noindent D. nombre tutor, profesor del departamento de nombre departamento, área de nombre área.
+\noindent D. Jesús Manuel Maudes Raedo, profesor del departamento de Ingeniería Informática, área de Lenguajes y Sistemas Informáticos.
 
 \noindent Expone:
 
-\noindent Que el alumno D. \nombre, con DNI dni, ha realizado el Trabajo final de Grado en Ingeniería Informática titulado título de TFG. 
+\noindent Que el alumno D. \nombre, con DNI 71364920Z, ha realizado el Trabajo final de Grado en Ingeniería Informática titulado título de TFG. 
 
 \noindent Y que dicho trabajo ha sido realizado por el alumno bajo la dirección del que suscribe, en virtud de lo cual se autoriza su presentación y defensa.
 
@@ -389,27 +391,29 @@ En Burgos, {\large \today}
 \vfill\vfill\vfill
 
 % Author and supervisor
-\begin{minipage}{0.45\textwidth}
-\begin{flushleft} %\large
-Vº. Bº. del Tutor:\\[2cm]
-D. nombre tutor
-\end{flushleft}
-\end{minipage}
-\hfill
-\begin{minipage}{0.45\textwidth}
-\begin{flushleft} %\large
-Vº. Bº. del co-tutor:\\[2cm]
-D. nombre co-tutor
-\end{flushleft}
-\end{minipage}
-\hfill
+%\begin{minipage}{0.45\textwidth}
+%\begin{flushleft} %\large
+%Vº. Bº. del Tutor:\\[2cm]
+%D. nombre tutor
+%\end{flushleft}
+%\end{minipage}
+%\hfill
+%\begin{minipage}{0.45\textwidth}
+%\begin{flushleft} %\large
+%Vº. Bº. del co-tutor:\\[2cm]
+%D. nombre co-tutor
+%\end{flushleft}
+%\end{minipage}
+%\hfill
 
-\vfill
+%\vfill
 
 % para casos con solo un tutor comentar lo anterior
 % y descomentar lo siguiente
-%Vº. Bº. del Tutor:\\[2cm]
-%D. nombre tutor
+\begin{center}
+Vº. Bº. del Tutor:\\[2cm]
+D. Jesús Manuel Maudes Raedo
+\end{center}
 
 
 \newpage\null\thispagestyle{empty}\newpage
@@ -422,26 +426,28 @@ D. nombre co-tutor
 % Abstract en castellano
 \renewcommand*\abstractname{Resumen}
 \begin{abstract}
-En este primer apartado se hace una \textbf{breve} presentación del tema que se aborda en el proyecto.
+Este proyecto permite modelar diagramas entidad-relación en una aplicación web y exportarlos a un script SQL tras su validación. Es también un punto de partida para que futuros proyectos puedan expandir su funcionalidad con relaciones más complejas. La aplicación está desarrollada en React y utiliza la librería mxGraph para la creación y manipulación de los diagramas. 
 \end{abstract}
 
 \renewcommand*\abstractname{Descriptores}
 \begin{abstract}
-Palabras separadas por comas que identifiquen el contenido del proyecto Ej: servidor web, buscador de vuelos, android \ldots
+Modelado de bases de datos, diagramas entidad-relación, exportación a SQL, aplicación web, React, mxGraph.
 \end{abstract}
+
 
 \clearpage
 
 % Abstract en inglés
 \renewcommand*\abstractname{Abstract}
 \begin{abstract}
-A \textbf{brief} presentation of the topic addressed in the project.
+This project allows modeling entity-relationship diagrams in a web application and exporting them to an SQL script after validation. It's also a starting point for future projects that will add features and more complex relations. Tusehe application is developed in React and uses the mxGraph library for the creation and manipulation of the diagrams.
 \end{abstract}
 
 \renewcommand*\abstractname{Keywords}
 \begin{abstract}
-keywords separated by commas.
+Database modeling, entity-relationship diagrams, SQL export, web application, React, mxGraph.
 \end{abstract}
+
 
 \clearpage
 
