@@ -296,87 +296,94 @@ export default function App(props) {
         saveToLocalStorage();
     };
 
+    const refreshGraph = () => {
+        const graphView = graph.getDefaultParent();
+        const view = graph.getView(graphView);
+        view.refresh();
+    };
+
+    const handleEntityMove = (selected) => {
+        const selectedEntityDiag = diagramRef.current.entities.find(
+            (entity) => entity.idMx === selected.id,
+        );
+
+        selectedEntityDiag?.attributes.forEach((attribute) => {
+            accessCell(attribute.cell.at(0)).geometry.x =
+                selected.geometry.x + attribute.offsetX;
+            accessCell(attribute.cell.at(0)).geometry.y =
+                selected.geometry.y + attribute.offsetY;
+        });
+        refreshGraph();
+    };
+
+    const handleRelationMove = (selected) => {
+        const selectedRelationDiag = diagramRef.current.relations.find(
+            (relation) => relation.idMx === selected.id,
+        );
+        if (selectedRelationDiag.canHoldAttributes) {
+            selectedRelationDiag?.attributes.forEach((attribute) => {
+                accessCell(attribute.cell.at(0)).geometry.x =
+                    selected.geometry.x + attribute.offsetX;
+                accessCell(attribute.cell.at(0)).geometry.y =
+                    selected.geometry.y + attribute.offsetY;
+            });
+            refreshGraph();
+        }
+        if (
+            selectedRelationDiag.side1.entity.idMx !== "" &&
+            selectedRelationDiag.side2.entity.idMx !== "" &&
+            selectedRelationDiag.side1.entity.idMx ===
+                selectedRelationDiag.side2.entity.idMx
+        ) {
+            const target1 = accessCell(selectedRelationDiag.side1.entity.idMx);
+            const source = selected;
+            const edge1 = accessCell(selectedRelationDiag.side1.edgeId);
+            const edge2 = accessCell(selectedRelationDiag.side2.edgeId);
+
+            const x1 = target1.geometry.x + target1.geometry.width / 2;
+            const x2 = source.geometry.x + source.geometry.width / 2;
+            const y1 = target1.geometry.y + target1.geometry.height / 2;
+            const y2 = source.geometry.y + source.geometry.height / 2;
+
+            edge1.geometry.points = [new mxPoint(x2, y1)];
+            edge2.geometry.points = [new mxPoint(x1, y2)];
+        }
+    };
+
+    const handleAttributeMove = (selected) => {
+        let parentEntity = diagramRef.current.entities.find((entity) =>
+            entity.attributes.some((attr) => attr.idMx === selected.id),
+        );
+        // If no parent entity found, check if it's an N:M relation
+        if (!parentEntity) {
+            parentEntity = diagramRef.current.relations.find((relation) =>
+                relation.attributes.some((attr) => attr.idMx === selected.id),
+            );
+        }
+
+        if (parentEntity) {
+            const attribute = parentEntity.attributes.find(
+                (attr) => attr.idMx === selected.id,
+            );
+
+            if (attribute) {
+                // Update offset
+                attribute.offsetX =
+                    selected.geometry.x - parentEntity.position.x;
+                attribute.offsetY =
+                    selected.geometry.y - parentEntity.position.y;
+            }
+        }
+    };
+
     const onCellsMoved = (_evt) => {
         if (selected) {
             if (selected?.style?.includes("shape=rectangle")) {
-                const selectedEntityDiag = diagramRef.current.entities.find(
-                    (entity) => entity.idMx === selected.id,
-                );
-
-                selectedEntityDiag?.attributes.forEach((attribute) => {
-                    accessCell(attribute.cell.at(0)).geometry.x =
-                        selected.geometry.x + attribute.offsetX;
-                    accessCell(attribute.cell.at(0)).geometry.y =
-                        selected.geometry.y + attribute.offsetY;
-                });
-                // NOTE: Refresh the graph to visually update the cell values
-                const graphView = graph.getDefaultParent();
-                const view = graph.getView(graphView);
-                view.refresh();
+                handleEntityMove(selected);
             } else if (selected?.style?.includes("shape=rhombus")) {
-                const selectedRelationDiag = diagramRef.current.relations.find(
-                    (relation) => relation.idMx === selected.id,
-                );
-                if (selectedRelationDiag.canHoldAttributes) {
-                    selectedRelationDiag?.attributes.forEach((attribute) => {
-                        accessCell(attribute.cell.at(0)).geometry.x =
-                            selected.geometry.x + attribute.offsetX;
-                        accessCell(attribute.cell.at(0)).geometry.y =
-                            selected.geometry.y + attribute.offsetY;
-                    });
-                    // NOTE: Refresh the graph to visually update the cell values
-                    const graphView = graph.getDefaultParent();
-                    const view = graph.getView(graphView);
-                    view.refresh();
-                }
-                if (
-                    selectedRelationDiag.side1.entity.idMx !== "" &&
-                    selectedRelationDiag.side2.entity.idMx !== "" &&
-                    selectedRelationDiag.side1.entity.idMx ===
-                        selectedRelationDiag.side2.entity.idMx
-                ) {
-                    const target1 = accessCell(
-                        selectedRelationDiag.side1.entity.idMx,
-                    );
-                    const source = selected;
-                    const edge1 = accessCell(selectedRelationDiag.side1.edgeId);
-                    const edge2 = accessCell(selectedRelationDiag.side2.edgeId);
-
-                    const x1 = target1.geometry.x + target1.geometry.width / 2;
-                    const x2 = source.geometry.x + source.geometry.width / 2;
-                    const y1 = target1.geometry.y + target1.geometry.height / 2;
-                    const y2 = source.geometry.y + source.geometry.height / 2;
-
-                    edge1.geometry.points = [new mxPoint(x2, y1)];
-                    edge2.geometry.points = [new mxPoint(x1, y2)];
-                }
+                handleRelationMove(selected);
             } else if (selected?.style?.includes("shape=ellipse")) {
-                let parentEntity = diagramRef.current.entities.find((entity) =>
-                    entity.attributes.some((attr) => attr.idMx === selected.id),
-                );
-                // If no parent entity found, check if it's an N:M relation
-                if (!parentEntity) {
-                    parentEntity = diagramRef.current.relations.find(
-                        (relation) =>
-                            relation.attributes.some(
-                                (attr) => attr.idMx === selected.id,
-                            ),
-                    );
-                }
-
-                if (parentEntity) {
-                    const attribute = parentEntity.attributes.find(
-                        (attr) => attr.idMx === selected.id,
-                    );
-
-                    if (attribute) {
-                        // Update offset
-                        attribute.offsetX =
-                            selected.geometry.x - parentEntity.position.x;
-                        attribute.offsetY =
-                            selected.geometry.y - parentEntity.position.y;
-                    }
-                }
+                handleAttributeMove(selected);
             }
         }
         // Ensure that the diagram is updated before
@@ -511,7 +518,6 @@ export default function App(props) {
         }
         updateDiagramData();
         toast.success("Atributo insertado");
-        // TODO:  Increment the offset so that new attributes are not added on top of others
     };
 
     const hideAttributes = (isRelationNM) => {
@@ -526,10 +532,7 @@ export default function App(props) {
             accessCell(cell.at(0)).setVisible(false);
             accessCell(cell.at(1)).setVisible(false);
         });
-        // NOTE: Refresh the graph to visually update the cell values
-        const graphView = graph.getDefaultParent();
-        const view = graph.getView(graphView);
-        view.refresh();
+        refreshGraph();
 
         const updatedAttributesHidden = { ...entityWithAttributesHidden };
         updatedAttributesHidden[selected.id] = true;
@@ -548,10 +551,7 @@ export default function App(props) {
             accessCell(cell.at(0)).setVisible(true);
             accessCell(cell.at(1)).setVisible(true);
         });
-        // NOTE: Refresh the graph to visually update the cell values
-        const graphView = graph.getDefaultParent();
-        const view = graph.getView(graphView);
-        view.refresh();
+        refreshGraph();
 
         const updatedAttributesHidden = { ...entityWithAttributesHidden };
         updatedAttributesHidden[selected.id] = false;
@@ -604,7 +604,7 @@ export default function App(props) {
         setRefreshDiagram((prevState) => !prevState);
     };
 
-    const renderMoveBackAndFrontButtons = () =>
+    const MoveBackAndFrontButtons = () =>
         selected && (
             <React.Fragment>
                 <button
@@ -624,7 +624,7 @@ export default function App(props) {
             </React.Fragment>
         );
 
-    const renderAddAttribute = () => {
+    const AddAttributeButton = () => {
         if (selected?.style?.includes("shape=rectangle")) {
             return (
                 <button
@@ -638,7 +638,7 @@ export default function App(props) {
         }
     };
 
-    const renderRelationAddAttribute = () => {
+    const RelationAddAttributeButton = () => {
         if (
             selected?.style?.includes("shape=rhombus") &&
             diagramRef.current.relations.find(
@@ -657,7 +657,7 @@ export default function App(props) {
         }
     };
 
-    const renderToggleAttributes = () => {
+    const ToggleAttributesButton = () => {
         const isEntity = selected?.style?.includes("shape=rectangle");
         const isRelationNM =
             selected?.style?.includes("shape=rhombus") &&
@@ -701,7 +701,7 @@ export default function App(props) {
         }
     };
 
-    const renderToggleAttrKey = () => {
+    const ToggleAttrKeyButton = () => {
         const isAttribute = selected?.style?.includes("shape=ellipse");
         let isKey;
         let isFromRelation = false;
@@ -741,7 +741,7 @@ export default function App(props) {
         }
     };
 
-    const renderRelationConfiguration = () => {
+    const RelationConfigurationButton = () => {
         const isRelation = selected?.style?.includes("shape=rhombus");
         const [open, setOpen] = React.useState(false);
         const [acceptDisabled, setAcceptDisabled] = React.useState(true);
@@ -993,7 +993,7 @@ export default function App(props) {
         }
     };
 
-    const renderRelationCardinalities = () => {
+    const RelationCardinalitiesButton = () => {
         const isRelation = selected?.style?.includes("shape=rhombus");
         const selectedDiag = diagramRef.current.relations.find(
             (entity) => entity.idMx === selected?.id,
@@ -1033,10 +1033,8 @@ export default function App(props) {
 
             graph.model.setValue(label1, side1);
             graph.model.setValue(label2, side2);
-            // NOTE: Refresh the graph to visually update the cell values
-            const graphView = graph.getDefaultParent();
-            const view = graph.getView(graphView);
-            view.refresh();
+
+            refreshGraph();
 
             setSide1("");
             setSide2("");
@@ -1184,7 +1182,7 @@ export default function App(props) {
         }
     };
 
-    const renderDeleteEntity = () => {
+    const DeleteEntityButton = () => {
         const isEntity = selected?.style?.includes("shape=rectangle");
         function deleteEntity() {
             // Find the entity in diagramRef.current.entities
@@ -1274,7 +1272,7 @@ export default function App(props) {
         }
     };
 
-    const renderDeleteAttribute = () => {
+    const DeleteAttributeButton = () => {
         const isAttribute = selected?.style?.includes("shape=ellipse");
         let isKey;
         let isFromRelation = false;
@@ -1382,7 +1380,7 @@ export default function App(props) {
         }
     };
 
-    const renderDeleteRelation = () => {
+    const DeleteRelationButton = () => {
         const isRelation = selected?.style?.includes("shape=rhombus");
 
         function deleteRelation() {
@@ -1429,7 +1427,7 @@ export default function App(props) {
         }
     };
 
-    const renderGenerateSQLButton = () => {
+    const GenerateSQLButton = () => {
         const [open, setOpen] = React.useState(false);
         const [acceptDisabled, setAcceptDisabled] = React.useState(true);
         const [validationMessages, setValidationMessages] = React.useState([]);
@@ -1541,7 +1539,7 @@ export default function App(props) {
         );
     };
 
-    const renderExportJSONButton = () => {
+    const ExportJSONButton = () => {
         const [open, setOpen] = React.useState(false);
         const [acceptDisabled, setAcceptDisabled] = React.useState(true);
         const [validationMessages, setValidationMessages] = React.useState([]);
@@ -1651,7 +1649,7 @@ export default function App(props) {
         );
     };
 
-    const renderImportJSONButton = () => {
+    const ImportJSONButton = () => {
         const [open, setOpen] = React.useState(false);
         const [validationMessages, setValidationMessages] = React.useState([]);
 
@@ -1778,7 +1776,7 @@ export default function App(props) {
         graph.removeCells(cellsToRemove);
     };
 
-    const renderResetCanvasButton = () => {
+    const ResetCanvasButton = () => {
         const [open, setOpen] = React.useState(false);
 
         const handleClickOpen = () => {
@@ -1835,24 +1833,24 @@ export default function App(props) {
             <div className="mxgraph-toolbar-container">
                 <div className="mxgraph-toolbar-container" ref={toolbarRef} />
 
-                <div>{renderAddAttribute()}</div>
-                <div>{renderRelationAddAttribute()}</div>
-                <div>{renderToggleAttributes()}</div>
-                <div>{renderToggleAttrKey()}</div>
+                <div>{AddAttributeButton()}</div>
+                <div>{RelationAddAttributeButton()}</div>
+                <div>{ToggleAttributesButton()}</div>
+                <div>{ToggleAttrKeyButton()}</div>
 
-                <div>{renderRelationConfiguration()}</div>
-                <div>{renderRelationCardinalities()}</div>
+                <div>{RelationConfigurationButton()}</div>
+                <div>{RelationCardinalitiesButton()}</div>
 
-                <div>{renderDeleteEntity()}</div>
-                <div>{renderDeleteRelation()}</div>
-                <div>{renderDeleteAttribute()}</div>
+                <div>{DeleteEntityButton()}</div>
+                <div>{DeleteRelationButton()}</div>
+                <div>{DeleteAttributeButton()}</div>
 
-                <div>{renderMoveBackAndFrontButtons()}</div>
+                <div>{MoveBackAndFrontButtons()}</div>
 
-                <div>{renderGenerateSQLButton()}</div>
-                <div>{renderExportJSONButton()}</div>
-                <div>{renderImportJSONButton()}</div>
-                <div>{renderResetCanvasButton()}</div>
+                <div>{GenerateSQLButton()}</div>
+                <div>{ExportJSONButton()}</div>
+                <div>{ImportJSONButton()}</div>
+                <div>{ResetCanvasButton()}</div>
             </div>
             <div ref={containerRef} className="mxgraph-drawing-container" />
             <Toaster position="bottom-left" />
