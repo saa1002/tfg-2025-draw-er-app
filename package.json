@@ -25,6 +25,7 @@
     "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "vitest --exclude \"**/tests/e2e\"",
     "test:e2e": "npx playwright test",
+    "test:coverage": "vitest --exclude \"**/tests/e2e\" --coverage",
     "eject": "react-scripts eject",
     "format": "npx @biomejs/biome format --write ./src",
     "lint": "npx @biomejs/biome lint --apply ./src"
@@ -45,7 +46,8 @@
     "@biomejs/biome": "1.7.3",
     "@playwright/test": "^1.44.0",
     "@types/node": "^20.12.12",
+    "@vitest/coverage-v8": "^2.0.0",
     "lefthook": "1.6.11",
-    "vitest": "1.6.0"
+    "vitest": "2.0.0"
   }
 }

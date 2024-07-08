@@ -354,3 +354,4 @@ TSWLatexianTemp*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/coverage
