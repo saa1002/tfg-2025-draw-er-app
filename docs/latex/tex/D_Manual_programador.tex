@@ -142,6 +142,13 @@ En este punto ya se habría hecho la build y tan solo quedaría servirla con una
 \section{Pruebas del sistema}
 Las pruebas del sistema están divididas en pruebas end-to-end (e2e) y pruebas unitarias.
 
+Inicialmente se intentó integrar la cobertura de los tests con la herramienta Sonarcloud \cite{sonarcloud} sin embargo se acabó desestimando por las siguientes razones:
+\begin{itemize}
+    \item Existen dos frameworks de test, pero tan solo Vitest arroja coberturas de código.
+    \item Los tests end-to-end prueban funcionalidades finales desde el punto de vista del usuario y por tanto no se genera una cobertura de código como tal. Para cubrir el componente principal, \texttt{DiagramEditor.js} se requeriría el uso de una librería de testeo para componentes de React. Que pudiera comprobar cosas tales como si el componente se está montando o no.
+    \item Al quedar todo \texttt{DiagramEditor.js} con cobertura de código 0 se provoca que la GH Action de Sonarcloud falle.
+\end{itemize}
+
 \subsection{Pruebas unitarias}
 Las pruebas unitarias se encuentran en el directorio \textbf{tests/unit}. Estas pruebas verifican la funcionalidad de los componentes individuales del sistema. Los diagramas JSON de ejemplo utilizados en estas pruebas están en \textbf{tests/unit/graphs}.
 
@@ -150,7 +157,65 @@ Para ejecutar las pruebas unitarias, utilizar el siguiente comando:
 npm run test
 \end{verbatim}
 
+Las pruebas unitarias nos permiten comprobar su cobertura lanzando el comando
+\begin{verbatim}
+npm run test:coverage
+\end{verbatim}
+
+Aparte de una salida en la terminal, se crea una carpeta \texttt{coverage} con un archivo index.html al que podemos acceder y comprobar el reporte de cobertura.
+
+\imagen{test-coverage-cli}{Reporte de cobertura desde la terminal.}
+\imagen{test-coverage}{Reporte de cobertura.}
+
+Podemos ver que la cobertura en los módulos \texttt{validation.js} y \texttt{sql.js} es casi completa.
+
+\imagen{test-coverage-utils}{Cobertura de los módulos utils: sql y validation}
+
 \imagen{unit-tests}{Ejecución de pruebas unitarias}
+
+\subsubsection{Descripción de las suites de pruebas}
+
+\textbf{sql.js}
+\begin{itemize}
+    \item \textbf{Filter graph tables}:
+    Se verifica el correcto filtrado de las tablas intermedias según el tipo de relación en el diagrama E-R.
+
+    \item \textbf{Extract table 1:N relation}:
+    Se valida la extracción correcta de tablas para relaciones 1:N del diagrama E-R.
+
+    \item \textbf{Extract table 1:1 relation}:
+    Se valida la extracción correcta de tablas para relaciones 1:1 del diagrama E-R.
+
+    \item \textbf{Extract table N:M relation}:
+    Se valida la extracción correcta de tablas para relaciones N:M del diagrama E-R.
+
+    \item \textbf{Generate SQL}:
+    Se valida la generación correcta de scripts SQL a partir de varios diagramas E-R.
+\end{itemize}
+
+\textbf{validation.js}
+\begin{itemize}
+    \item \textbf{General validation function}:
+    Se verifica la validación general de varios diagramas E-R completo.
+
+    \item \textbf{Non repeated entity or n:m relation name}:
+    Se comprueba que no haya nombres repetidos en entidades o relaciones N:M en el diagrama E-R.
+
+    \item \textbf{Non repeated attributes in entities or n:m relations}:
+    Se comprueba que no haya nombres de atributos repetidos en entidades o en relaciones N:M.
+
+    \item \textbf{Every entity should have at least one attribute}:
+    Se comprueba que todas las entidades tengan al menos un atributo.
+
+    \item \textbf{Relations}:
+    Se valida diversos aspectos relacionados con las relaciones en el diagrama E-R:
+    \begin{itemize}
+        \item Cada relación conecte dos entidades (pueden ser la misma entidad en ambos lados).
+        \item No existan relaciones con atributos a menos que sean relaciones N:M.
+        \item Todas las relaciones tengan cardinalidades válidas.
+    \end{itemize}
+\end{itemize}
+
 
 \subsection{Pruebas end-to-end}
 Las pruebas end-to-end se encuentran en el directorio \textbf{tests/e2e}. Estas pruebas verifican la funcionalidad completa del sistema desde un punto de vista de usuario final.
@@ -168,4 +233,14 @@ Con este comando se lanza la interfaz gráfica de la herramienta Playwright \cit
 
 \imagen{e2e-tests}{Ejecución de pruebas End to End con la interfaz gráfica de Playwright}
 
+\subsubsection{Descripción de los tests}
+\begin{itemize}
+    \item \textbf{Add entities to the canvas and change name}:
+    Se comprueba que el usuario pueda agregar entidades al canvas y cambiar sus nombres.
 
+    \item \textbf{Add attributes to an entity}:
+    Se comprueba que el usuario pueda agregar atributos a una entidad en el canvas.
+
+    \item \textbf{Hide/show attributes}:
+    Se comprueba que el usuario pueda ocultar y mostrar atributos de una entidad en el canvas.
+\end{itemize}

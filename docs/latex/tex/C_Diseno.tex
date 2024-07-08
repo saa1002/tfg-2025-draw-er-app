@@ -22,6 +22,7 @@ Esta aplicación no tiene como tal una estructura de datos definida puesto que n
             "attributes": [
                 {
                     "idMx": "3",
+                    "key": false,
                     "name": "Atributo",
                     "position": {
                         "x": 374,
@@ -62,13 +63,49 @@ Esta aplicación no tiene como tal una estructura de datos definida puesto que n
   ]
 }
 \end{lstlisting}
-\caption{Representación interna del diagrama E-R}
+\caption{Representación interna de un ejemplo de diagrama E-R.}
+\label{fig:e-r-structure}
 \end{figure}
 
 En esta estructura tenemos 3 entidades definidas que son: Entidades, Relaciones y Atributos.
 
+En la figura \ref{fig:e-r-structure} podemos ver un ejemplo de un diagrama que constaría de una entidad llamada \texttt{Entidad} cuyos campos son:
+\begin{itemize}
+    \item idMx: Vinculación de id con la librería de renderización mxGraph.
+    \item position: Coordenadas de esta entidad en el canvas.
+    \item attributes: Colección de atributos que pertenecen a esta entidad de los cuáles se guardan a su vez:
+    \begin{itemize}
+        \item idMx.
+        \item key: Si son clave o no.
+        \item position.
+    \end{itemize}
+\end{itemize}
+También tenemos una relación llamada \texttt{Relación} cuyos campos son:
+\begin{itemize}
+    \item idMx: Vinculación de id con la librería de renderización mxGraph.
+    \item position: Coordenadas de esta entidad en el canvas.
+    \item canHoldAttributes: Booleano que determina si esta relación puede guardar atributos, es decir si es N:M.
+    \item attributes: Colección de atributos que pertenecen a esta relación (solo en caso de ser N:M) de los cuáles se guardan a su vez:
+    \begin{itemize}
+        \item idMx.
+        \item key: Si son clave o no.
+        \item position.
+    \end{itemize}
+    \item side1:
+    \begin{itemize}
+        \item idMx: id de la librería mxGraph que corresponde a la celda donde se guarda el label de la cardinalidad.
+        \item cardinality: Cardinalidad de este lado de la relación.
+        \item cell: Este campo es equivalente a idMx pero se conserva por compatibilidad.
+        \item entity.idMx: id de la librería mxGraph que corresponde a la celda que contiene la entidad de esta lado de la relación.
+    \end{itemize}
+    \item side2: Con campos idénticos, corresponde al otro lado de la relación.
+\end{itemize}
+
 Su diagrama E-R es el siguiente: \ref{fig:structure-er}
 \imagen{structure-er}{Diagrama E-R que representa la estructura interna sobra la que funciona la aplicación.}
+
+Tanto Entidades como Relaciones pueden tener atributos asociados. En el caso de las entidades han de tener sí o sí un atributo, mientras que las relaciones pueden no tenerlo.
+Las Relaciones pueden tener 1 o más lados, estando cada uno de estos lados relacionados con 1 Entidad. Una Entidad puede aparecer suelta en un diagrama E-R asi que no tiene porqué estar asociada a un Lado.
 
 \section{Diseño procedimental}
 En esta sección se describen los procesos más complejos de la aplicación utilizando diagramas de flujo para entenderlos más fácilmente.
@@ -100,29 +137,24 @@ El diseño arquitectónico de la aplicación es bastante simple, puesto que se b
 
 \subsection{Estructura de paquetes}
 La estructura de paquetes de la aplicación se organiza de la siguiente manera:
+
+\imagen{package-diagram}{Estructura de paquetes de la aplicación.}
 \begin{itemize}
     \item \textbf{src}: Contiene todo el código fuente de la aplicación.
     \begin{itemize}
-        \item \textbf{components/DiagramEditor}
+        \item \textbf{DiagramEditor}
         \begin{itemize}
-            \item styles: Carpeta con el css que afecta al componente DiagramEditor
-            \item \textbf{DiagramEditor.js}: Componente principal de nuestra aplicación, llama al resto de módulos e inicializa la librería mxGraph.
-            \item utils
-            \begin{itemize}
-                \item \textbf{setInitialConfiguration.js}: Ajusta la configuración la que se inicializa la librería mxGraph.
-                \item \textbf{initToolbar.js}: Inicializa la barra de herramientas.
-                \item \textbf{addToolbarItem.js}: Función auxiliar que se llama al arrastrar un componente de la barra de tareas al canvas.
-                \item configureToolbar.js: Función auxiliar para configurar la barra de herramientas.
-                \item getStyleByKey.js: Función auxiliar para obtener estilos de un objeto.
-                \item getStyleStringByObj.js: Función auxiliar para obtener estilos de un objeto.
+            \item \textbf{DiagramEditor}: Componente principal de la aplicación.
+            \item \textbf{initMxGraph}: Inicialización de la librería mxGraph.
+            \item \textbf{toolbar}: Inicialización de la barra de herramientas.
             \end{itemize}
-        \end{itemize}
         \item \textbf{utils}:
         \begin{itemize}
-            \item \textbf{validation.js}: Módulo que contiene las funciones necesarias para procesar y determina si la estructura interna E-R conforma un diagrama válido.
-            \item \textbf{sql.js}: Módulo que contiene las funciones necesarias para procesar y convertir la estructura interna E-R en un script SQL.
+            \item \textbf{validation}: Módulo que valida la estructura interna E-R.
+            \item \textbf{sql}: Módulo que procesa y convierte la estructura interna E-R en un script SQL.
         \end{itemize}
     \end{itemize}
+    \item App.js: Punto de entrada de la aplicación React.
 \end{itemize}
 
 \subsection{Componentes de la arquitectura}
