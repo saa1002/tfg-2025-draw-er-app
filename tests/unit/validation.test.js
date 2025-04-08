@@ -8,7 +8,8 @@ import {
     relationsUnconnected,
     validateGraph, 
     cardinalitiesNotValid,
-    notNMRelationsWithAttributes
+    notNMRelationsWithAttributes,
+    invalidRelationNames
 } from "../../src/utils/validation"
 
 let graph;
@@ -141,5 +142,25 @@ describe("Relations", () => {
         graph.relations.at(1).side2 = initializedSide2;
         expect(cardinalitiesNotValid(graph)).toBe(true);
         expect(validateGraph(graph).noNotValidCardinalities).toBe(false)
+    });
+});
+
+describe("Invalid relation names", () => {
+    test("Relations should not have empty or invalid names", () => {
+        // The initial graph should be valid
+        expect(invalidRelationNames(graph)).toBe(false);
+
+        // Empty name
+        graph.relations[0].name = "";
+        expect(invalidRelationNames(graph)).toBe(true);
+        expect(validateGraph(graph).noInvalidRelationNames).toBe(false);
+
+        // Restore
+        graph.relations[0].name = "ValidRelation";
+
+        // Name with invalid characters:
+        graph.relations[0].name = "relación@123";
+        expect(invalidRelationNames(graph)).toBe(true);
+        expect(validateGraph(graph).noInvalidRelationNames).toBe(false);
     });
 });
