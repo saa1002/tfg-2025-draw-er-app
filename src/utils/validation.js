@@ -255,7 +255,7 @@ export function cardinalitiesNotValid(graph) {
 
 export function invalidRelationNames(graph) {
     const isValidName = (name) =>
-        typeof name === "string" && /^[a-zA-Z0-9_]+$/.test(name.trim());
+        typeof name === "string" && /^[a-zA-Z0-9 _]+$/.test(name.trim());
 
     return graph.relations.some((rel) => !isValidName(rel.name));
 }
