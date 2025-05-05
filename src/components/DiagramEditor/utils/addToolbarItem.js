@@ -105,6 +105,12 @@ export default function addToolbarItem(
         funct(graph, evt, cell, pt.x, pt.y);
     });
 
+    if (addEntityToDiagram) {
+        img.setAttribute("data-testid", "icon-entidad");
+    } else {
+        img.setAttribute("data-testid", "icon-relacion");
+    }
+
     // Disables dragging if element is disabled. This is a workaround
     // for wrong event order in IE. Following is a dummy listener that
     // is invoked as the last listener in IE.

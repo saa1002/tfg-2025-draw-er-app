@@ -1464,6 +1464,8 @@ export default function App(props) {
                     messages.push(
                         "Hay cardinalidades no válidas en las relaciones.",
                     );
+                if (!diagnostics.noInvalidRelationNames)
+                    messages.push("Hay relaciones con nombres inválidos.");
                 setValidationMessages(messages);
             }
             setOpen(true);

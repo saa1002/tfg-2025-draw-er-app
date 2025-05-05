@@ -21,7 +21,7 @@
     "react-scripts": "5.0.1"
   },
   "scripts": {
-    "start": "cross-env BROWSER=none react-scripts start",
+    "start": "cross-env BROWSER=none HOST=127.0.0.1 react-scripts start",
     "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "vitest --exclude \"**/tests/e2e\"",
     "test:e2e": "npx playwright test",
@@ -47,6 +47,7 @@
     "@playwright/test": "^1.44.0",
     "@types/node": "^20.12.12",
     "@vitest/coverage-v8": "^2.0.0",
+    "cross-env": "^7.0.3",
     "lefthook": "1.6.11",
     "vitest": "2.0.0"
   }

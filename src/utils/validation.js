@@ -10,6 +10,7 @@ export function validateGraph(graph) {
         noNotValidCardinalities: true,
         notEmpty: true,
         isValid: true,
+        noInvalidRelationNames: true,
     };
 
     // The graph is empty
@@ -63,6 +64,11 @@ export function validateGraph(graph) {
     // Check for relations with invalid cardinalities
     if (cardinalitiesNotValid(graph)) {
         diagnostics.noNotValidCardinalities = false;
+        diagnostics.isValid = false;
+    }
+
+    if (invalidRelationNames(graph)) {
+        diagnostics.noInvalidRelationNames = false;
         diagnostics.isValid = false;
     }
 
@@ -245,4 +251,11 @@ export function cardinalitiesNotValid(graph) {
         }
     }
     return false; // All cardinalities are valid
+}
+
+export function invalidRelationNames(graph) {
+    const isValidName = (name) =>
+        typeof name === "string" && /^[a-zA-Z0-9 _]+$/.test(name.trim());
+
+    return graph.relations.some((rel) => !isValidName(rel.name));
 }
