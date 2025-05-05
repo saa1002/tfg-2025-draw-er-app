@@ -3,15 +3,22 @@ import { test, expect } from '@playwright/test';
 test('add entities to the canvas and change name', async ({ page }) => {
     await page.goto('/');
 
-    const canvas = page.locator("svg")
-    await page.getByRole('img').first().dragTo(canvas);
+    const canvas = page.locator(".mxgraph-drawing-container");
+    const box = await canvas.boundingBox();
 
-    await canvas.click();
+    const entidadIcon = page.getByTestId('icon-entidad');
+    await entidadIcon.dragTo(canvas, {targetPosition: {x: 150, y: 150}});
 
-    await page.getByText('Entidad').first().dblclick();
+    const entidad = page.getByText('Entidad').first();
+    await entidad.dblclick();
+
     await page.keyboard.type('Clientes');
 
-    await canvas.click();
+    await page.keyboard.press('Enter');
+
+    await expect(page.getByText('Clientes')).toBeVisible();
+
+    //LocalStorage
 });
 
 test('add attributes to an entity', async ({ page }) => {
