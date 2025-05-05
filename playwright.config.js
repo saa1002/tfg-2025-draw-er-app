@@ -67,8 +67,8 @@ module.exports = defineConfig({
   webServer: {
     command: 'npm start',
     url: 'http://127.0.0.1:3000',
-    timeout: 60 * 1000, 
-    reuseExistingServer: false
+    reuseExistingServer: false,
+    ignoreHTTPSErrors: true,
   },
 });
 

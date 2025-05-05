@@ -103,12 +103,13 @@ export default function addToolbarItem(
     const img = toolbar.addMode(null, image, function (evt, cell) {
         const pt = this.graph.getPointForEvent(evt);
         funct(graph, evt, cell, pt.x, pt.y);
-        if (addEntityToDiagram) {
-            img.setAttribute("data-testid", "icon-entidad");
-        } else {
-            img.setAttribute("data-testid", "icon-relacion");
-        }
     });
+
+    if (addEntityToDiagram) {
+        img.setAttribute("data-testid", "icon-entidad");
+    } else {
+        img.setAttribute("data-testid", "icon-relacion");
+    }
 
     // Disables dragging if element is disabled. This is a workaround
     // for wrong event order in IE. Following is a dummy listener that
