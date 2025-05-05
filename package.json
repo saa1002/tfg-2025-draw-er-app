@@ -21,7 +21,7 @@
     "react-scripts": "5.0.1"
   },
   "scripts": {
-    "start": "cross-env BROWSER=none react-scripts start",
+    "start": "cross-env BROWSER=none HOST=127.0.0.1 react-scripts start",
     "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "vitest --exclude \"**/tests/e2e\"",
     "test:e2e": "npx playwright test",
