@@ -10,6 +10,7 @@ export default function addToolbarItem(
     diagramRef,
     addEntityToDiagram,
     addRelationToDiagram,
+    isWeakEntity = false,
 ) {
     // Function that is executed when the image is dropped on
     // the graph. The cell argument points to the cell under
@@ -72,6 +73,7 @@ export default function addToolbarItem(
                 name: vertex.value,
                 position: { x: vertex.geometry.x, y: vertex.geometry.y },
                 attributes: [],
+                isWeak: isWeakEntity,
             });
         }
         if (addRelationToDiagram) {
@@ -105,7 +107,9 @@ export default function addToolbarItem(
         funct(graph, evt, cell, pt.x, pt.y);
     });
 
-    if (addEntityToDiagram) {
+    if (isWeakEntity) {
+        img.setAttribute("data-testid", "icon-entidad-debil");
+    } else if (addEntityToDiagram) {
         img.setAttribute("data-testid", "icon-entidad");
     } else {
         img.setAttribute("data-testid", "icon-relacion");

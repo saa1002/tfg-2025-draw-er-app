@@ -50,14 +50,12 @@ test('add a relation to the canvas and verify it appears', async ({ page }) => {
 //     await entidadIcon.dragTo(canvas, { targetPosition: { x: 450, y: 150 } });
 //     await relacionIcon.dragTo(canvas, { targetPosition: { x: 300, y: 200 } });
   
-//     // Asegurarse que el texto "Relación" existe
 //     const relacionText = page.getByText('Relación', { exact: true });
 //     await expect(relacionText).toBeVisible();
   
 //     await relacionText.click();
 //     await page.getByText('Configurar relación').click();
   
-//     // Seleccionamos las primeras dos opciones sin depender del texto
 //     const selects = page.locator('select');
 //     await selects.nth(0).selectOption({ index: 0 });
 //     await selects.nth(1).selectOption({ index: 1 });
