@@ -37,6 +37,7 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
         value = null,
         addEntityToDiagram = null,
         addRelationToDiagram = null,
+        isWeakEntity = false,
     ) => {
         const vertex = new mxCell(null, new mxGeometry(0, 0, w, h), style);
         if (value) {
@@ -52,6 +53,7 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
             diagramRef,
             addEntityToDiagram,
             addRelationToDiagram,
+            isWeakEntity,
         );
         img.enabled = true;
 
@@ -74,6 +76,18 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
         "Entidad",
         true, //addEntityToDiagram
         false, //addRelationToDiagram
+    );
+    addVertex(
+        "images/db-rectangle.png",
+        100,
+        40,
+        getStyleStringByObj({
+            ...baseStyle,
+        }),
+        "Entidad debil",
+        true, //addEntityToDiagram
+        false, //addRelationToDiagram
+        true,
     );
     addVertex(
         "images/rhombus.png",
