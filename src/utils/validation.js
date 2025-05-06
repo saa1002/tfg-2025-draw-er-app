@@ -11,6 +11,11 @@ export function validateGraph(graph) {
         notEmpty: true,
         isValid: true,
         noInvalidRelationNames: true,
+        // weak entities
+        noWeakEntityWithPrimaryKey: true,
+        noWeakEntityInvalidRelationCount: true,
+        noWeakEntityWrongCardinality: true,
+        noWeakEntityNoDiscriminant: true,
     };
 
     // The graph is empty
@@ -69,6 +74,26 @@ export function validateGraph(graph) {
 
     if (invalidRelationNames(graph)) {
         diagnostics.noInvalidRelationNames = false;
+        diagnostics.isValid = false;
+    }
+
+    if (weakEntityHasPrimaryKey(graph)) {
+        diagnostics.noWeakEntityWithPrimaryKey = false;
+        diagnostics.isValid = false;
+    }
+
+    if (weakEntityInvalidRelationCount(graph)) {
+        diagnostics.noWeakEntityInvalidRelationCount = false;
+        diagnostics.isValid = false;
+    }
+
+    if (weakEntityWrongCardinality(graph)) {
+        diagnostics.noWeakEntityWrongCardinality = false;
+        diagnostics.isValid = false;
+    }
+
+    if (weakEntityNoDiscriminant(graph)) {
+        diagnostics.noWeakEntityNoDiscriminant = false;
         diagnostics.isValid = false;
     }
 
@@ -258,4 +283,88 @@ export function invalidRelationNames(graph) {
         typeof name === "string" && /^[a-zA-Z0-9 _]+$/.test(name.trim());
 
     return graph.relations.some((rel) => !isValidName(rel.name));
+}
+
+// True if a weak entity has a primary key
+export function weakEntityHasPrimaryKey(graph) {
+    for (const entity of graph.entities) {
+        if (entity.isWeak) {
+            for (const attribute of entity.attributes) {
+                if (attribute.key) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// True if a weak entity has not exactly one relation
+export function weakEntityInvalidRelationCount(graph) {
+    for (const entity of graph.entities) {
+        if (entity.isWeak) {
+            let count = 0;
+            for (const relation of graph.relations) {
+                if (
+                    relation.side1.entity.idMx === entity.idMx ||
+                    relation.side2.entity.idMx === entity.idMx
+                ) {
+                    count++;
+                }
+            }
+            if (count !== 1) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// True if the cardinalities on a weak entity relation are invalid
+export function weakEntityWrongCardinality(graph) {
+    for (const relation of graph.relations) {
+        const side1 = relation.side1;
+        const side2 = relation.side2;
+
+        const entity1 = graph.entities.find(
+            (e) => e.idMx === side1.entity.idMx,
+        );
+        const entity2 = graph.entities.find(
+            (e) => e.idMx === side2.entity.idMx,
+        );
+
+        if (entity1?.isWeak || entity2?.isWeak) {
+            const weakSide = entity1?.isWeak ? side1 : side2;
+            const strongSide = entity1?.isWeak ? side2 : side1;
+
+            if (
+                !(
+                    weakSide.cardinality === "0:N" &&
+                    strongSide.cardinality === "1:1"
+                )
+            ) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// True if weak entities do not have a discriminant attribute
+export function weakEntityNoDiscriminant(graph) {
+    for (const entity of graph.entities) {
+        if (entity.isWeak) {
+            let hasDiscriminant = false;
+            for (const attribute of entity.attributes) {
+                if (!attribute.key && /disc/i.test(attribute.name)) {
+                    hasDiscriminant = true;
+                    break;
+                }
+            }
+            if (!hasDiscriminant) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
