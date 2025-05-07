@@ -440,6 +440,60 @@ const removeAccents = (str) => {
         .join("");
 };
 
+export function processWeakEntity(entity, graph) {
+    const relation = graph.relations.find(
+        (rel) =>
+            (rel.side1.entity.idMx === entity.idMx ||
+                rel.side2.entity.idMx === entity.idMx) &&
+            rel.isIdentifying,
+    );
+
+    if (!relation) {
+        return [];
+    }
+
+    const weakSide =
+        relation.side1.entity.idMx === entity.idMx
+            ? relation.side1
+            : relation.side2;
+    const strongSide =
+        relation.side1.entity.idMx === entity.idMx
+            ? relation.side2
+            : relation.side1;
+
+    const strongEntity = graph.entities.find(
+        (e) => e.idMx === strongSide.entity.idMx,
+    );
+
+    const table = {
+        name: entity.name,
+        attributes: [],
+    };
+
+    strongEntity.attributes.forEach((attr) => {
+        if (attr.key) {
+            table.attributes.push({
+                name: `${attr.name}_${relation.name}`,
+                key: true,
+                notnull: true,
+                foreign_key: strongEntity.name,
+            });
+        }
+    });
+
+    entity.attributes.forEach((attr) => {
+        if (attr.discriminant) {
+            table.attributes.push({
+                name: attr.name,
+                key: true,
+                notnull: true,
+            });
+        }
+    });
+
+    return [table];
+}
+
 // Generate SQL
 export function generateSQL(graph) {
     const tables = filterTables(graph);
@@ -458,7 +512,11 @@ export function generateSQL(graph) {
                 processedTablesArray = processNMRelation(table);
                 break;
             default:
-                processedTablesArray = [table];
+                if (table.isWeak) {
+                    processedTablesArray = processWeakEntity(table, graph);
+                } else {
+                    processedTablesArray = [table];
+                }
                 break;
         }
 
