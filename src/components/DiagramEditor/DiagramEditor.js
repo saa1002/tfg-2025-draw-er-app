@@ -38,6 +38,11 @@ export default function App(props) {
     const transparentColor = {};
     transparentColor[mxConstants.STYLE_FILLCOLOR] = "transparent";
 
+    const weakEntityStyle = {};
+    weakEntityStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+    weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 3;
+    weakEntityStyle[mxConstants.STYLE_SPACING] = 8;
+
     const containerRef = React.useRef(null);
     const toolbarRef = React.useRef(null);
 
@@ -99,6 +104,10 @@ export default function App(props) {
             graph.orderCells(true, [edge]); // Move front the selected entity so the new vertex aren't on top
         };
         const recreateEntity = (entity) => {
+            const style = entity.isWeak
+                ? "weakEntityStyle"
+                : "shape=rectangle;verticalAlign=middle;align=center;fillColor=#C3D9FF;strokeColor=#6482B9;fontColor=#774400";
+
             const source = graph.insertVertex(
                 null,
                 entity.idMx,
@@ -107,7 +116,7 @@ export default function App(props) {
                 entity.position.y,
                 100,
                 40,
-                ";shape=rectangle;verticalAlign=middle;align=center;fillColor=#C3D9FF;strokeColor=#6482B9;fontColor=#774400",
+                style,
             );
             for (const attribute of entity.attributes) {
                 recreateAttribute(attribute, source);
@@ -245,6 +254,9 @@ export default function App(props) {
             graph
                 .getStylesheet()
                 .putCellStyle("transparentColor", transparentColor);
+            graph
+                .getStylesheet()
+                .putCellStyle("weakEntityStyle", weakEntityStyle);
 
             recreateGraphFromLocalStorage();
 
