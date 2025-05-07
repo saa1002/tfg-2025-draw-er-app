@@ -1506,6 +1506,11 @@ export default function App(props) {
                     );
                 if (!diagnostics.noInvalidRelationNames)
                     messages.push("Hay relaciones con nombres inválidos.");
+                if (!diagnostics.noWeakEntityWrongCardinality)
+                    messages.push(
+                        "Una entidad debil tiene cardinalidades incorrectas.",
+                    );
+
                 setValidationMessages(messages);
             }
             setOpen(true);
