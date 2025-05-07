@@ -442,8 +442,17 @@ export default function App(props) {
             );
             isRelation = true;
         }
+
+        const isWeakEntity = accessCell(selected.id).style.includes(
+            "weakEntityStyle",
+        );
         const addKey = selectedDiag?.attributes?.length === 0;
-        addPrimaryAttrRef.current = addKey;
+        const isDiscriminant =
+            isWeakEntity && selectedDiag?.attributes?.length === 0;
+        addPrimaryAttrRef.current = {
+            key: addKey,
+            discriminant: isDiscriminant,
+        };
         const source = selected;
 
         // Initial offset
@@ -494,7 +503,9 @@ export default function App(props) {
             10,
             10,
             `shape=ellipse;rightLabelStyle;notResizeableStyle;transparentColor;${
-                addPrimaryAttrRef.current && !isRelation ? "keyAttrStyle" : ""
+                addPrimaryAttrRef.current.key && !isRelation
+                    ? "keyAttrStyle"
+                    : ""
             }`,
         );
 
@@ -512,10 +523,8 @@ export default function App(props) {
                         x: target.geometry.x,
                         y: target.geometry.y,
                     },
-                    key: addPrimaryAttrRef.current,
-                    discriminant:
-                        accessCell(selected.id).value?.isWeak &&
-                        !addPrimaryAttrRef.current,
+                    key: addPrimaryAttrRef.current.key,
+                    discriminant: addPrimaryAttrRef.current.discriminant,
                     cell: [target.id, String(+target.id + 1)],
                     offsetX: target.geometry.x - selected.geometry.x,
                     offsetY: target.geometry.y - selected.geometry.y,
