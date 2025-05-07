@@ -83,6 +83,8 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
         40,
         getStyleStringByObj({
             ...baseStyle,
+            [mxConstants.STYLE_STROKEWIDTH]: 3,
+            [mxConstants.STYLE_DASHED]: true,
         }),
         "Entidad debil",
         true, //addEntityToDiagram
