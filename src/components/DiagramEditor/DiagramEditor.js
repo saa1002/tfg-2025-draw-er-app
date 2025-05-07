@@ -496,6 +496,9 @@ export default function App(props) {
                         y: target.geometry.y,
                     },
                     key: addPrimaryAttrRef.current,
+                    discriminant:
+                        accessCell(selected.id).value?.isWeak &&
+                        !addPrimaryAttrRef.current,
                     cell: [target.id, String(+target.id + 1)],
                     offsetX: target.geometry.x - selected.geometry.x,
                     offsetY: target.geometry.y - selected.geometry.y,
