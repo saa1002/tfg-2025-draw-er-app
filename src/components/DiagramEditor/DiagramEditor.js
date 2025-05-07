@@ -291,6 +291,9 @@ export default function App(props) {
                 entity.name = cellData.value;
                 entity.position.x = cellData.geometry.x;
                 entity.position.y = cellData.geometry.y;
+                entity.isWeak = accessCell(entity.idMx).style.includes(
+                    "weakEntityStyle",
+                );
 
                 updateEntityAttributes(entity);
             }
