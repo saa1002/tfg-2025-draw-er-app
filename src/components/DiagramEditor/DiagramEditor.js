@@ -139,6 +139,7 @@ export default function App(props) {
                     null,
                     source,
                     target1,
+                    relation.isIdentifying ? "strokeWidth=3" : "",
                 );
                 const edge2 = graph.insertEdge(
                     source,
@@ -146,6 +147,7 @@ export default function App(props) {
                     null,
                     source,
                     target2,
+                    relation.isIdentifying ? "strokeWidth=3" : "",
                 );
                 const cardinality1 = graph.insertVertex(
                     edge1,
@@ -871,6 +873,17 @@ export default function App(props) {
             selectedDiag.side2.cell = cardinality2.id;
             selectedDiag.side1.entity.idMx = side1.idMx;
             selectedDiag.side2.entity.idMx = side2.idMx;
+
+            const entity1 = diagramRef.current.entities.find(
+                (e) => e.idMx === side1.idMx,
+            );
+            const entity2 = diagramRef.current.entities.find(
+                (e) => e.idMx === side2.idMx,
+            );
+
+            selectedDiag.isIdentifying =
+                (entity1?.isWeak && !entity2?.isWeak) ||
+                (entity2?.isWeak && !entity1?.isWeak);
 
             if (target1 === target2) {
                 const x1 = target1.geometry.x + target1.geometry.width / 2;
