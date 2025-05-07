@@ -339,7 +339,8 @@ export function weakEntityWrongCardinality(graph) {
 
             if (
                 !(
-                    weakSide.cardinality === "0:N" &&
+                    (weakSide.cardinality === "0:N" ||
+                        weakSide.cardinality === "1:N") &&
                     strongSide.cardinality === "1:1"
                 )
             ) {
