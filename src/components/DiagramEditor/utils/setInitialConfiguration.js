@@ -1,5 +1,53 @@
-import { mxClient, mxEdgeHandler, mxRubberband, mxUtils } from "mxgraph-js";
+import {
+    mxClient,
+    mxEdgeHandler,
+    mxEvent,
+    mxRubberband,
+    mxUtils,
+} from "mxgraph-js";
 import initToolbar from "./initToolbar";
+
+function setupWeakEntityValidation(graph) {
+    graph.connectionHandler.addListener(mxEvent.CONNECT, (sender, evt) => {
+        const edge = evt.getProperty("cell");
+        const source = graph.getModel().getTerminal(edge, true);
+        const target = graph.getModel().getTerminal(edge, false);
+
+        const sourceValue = source.value || {};
+        const targetValue = target.value || {};
+
+        const sourceIsWeak = sourceValue.isWeak === true;
+        const targetIsWeak = targetValue.isWeak === true;
+
+        if (sourceIsWeak && targetIsWeak) {
+            graph.removeCells([edge]);
+            alert(
+                "Una entidad débil no puede conectarse con otra entidad débil.",
+            );
+            return;
+        }
+
+        const model = graph.getModel();
+        const weak = sourceIsWeak ? source : target;
+        if (weak && model.getEdges(weak).length > 1) {
+            graph.removeCells([edge]);
+            alert(
+                "Una entidad débil solo puede estar conectada a una única relación.",
+            );
+            return;
+        }
+
+        const connected = sourceIsWeak ? target : source;
+        const style = graph.getModel().getStyle(connected);
+        if (style && !style.includes("shape=rhombus")) {
+            graph.removeCells([edge]);
+            alert(
+                "Las entidades débiles deben conectarse a una relación (rombo).",
+            );
+            return;
+        }
+    });
+}
 
 export default function setInitialConfiguration(graph, diagramRef, toolbarRef) {
     if (!mxClient.isBrowserSupported()) {
@@ -7,6 +55,7 @@ export default function setInitialConfiguration(graph, diagramRef, toolbarRef) {
         mxUtils.error("Browser is not supported!", 200, false);
     } else {
         initToolbar(graph, diagramRef, toolbarRef.current);
+        setupWeakEntityValidation(graph);
 
         // Enables rubberband selection
         new mxRubberband(graph);

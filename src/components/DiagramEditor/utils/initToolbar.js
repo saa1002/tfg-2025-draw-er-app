@@ -40,9 +40,10 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
         isWeakEntity = false,
     ) => {
         const vertex = new mxCell(null, new mxGeometry(0, 0, w, h), style);
-        if (value) {
-            vertex.value = value;
-        }
+        vertex.value = {
+            name: value,
+            isWeak: isWeakEntity || false,
+        };
         vertex.setVertex(true);
 
         const img = addToolbarItem(
