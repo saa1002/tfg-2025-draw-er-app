@@ -46,7 +46,7 @@ export default function addToolbarItem(
         let existingItems;
 
         if (addEntityToDiagram) {
-            baseName = "Entidad";
+            baseName = isWeakEntity ? "Entidad debil" : "Entidad";
             existingItems = existingEntities;
         } else if (addRelationToDiagram) {
             baseName = "Relación";
