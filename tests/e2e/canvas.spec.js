@@ -36,38 +36,7 @@ test('add a relation to the canvas and verify it appears', async ({ page }) => {
   
     await expect(page.getByText('Relación', { exact: true })).toBeVisible();
   });
-
-// test('add relations between two entities', async ({ page }) => {
-//     await page.goto('/');
-//     await expect(page.locator('.mxgraph-drawing-container')).toBeVisible();
   
-//     const canvas = page.locator('.mxgraph-drawing-container');
-  
-//     const entidadIcon = page.getByTestId('icon-entidad');
-//     const relacionIcon = page.getByTestId('icon-relacion');
-  
-//     await entidadIcon.dragTo(canvas, { targetPosition: { x: 150, y: 150 } });
-//     await entidadIcon.dragTo(canvas, { targetPosition: { x: 450, y: 150 } });
-//     await relacionIcon.dragTo(canvas, { targetPosition: { x: 300, y: 200 } });
-  
-//     const relacionText = page.getByText('Relación', { exact: true });
-//     await expect(relacionText).toBeVisible();
-  
-//     await relacionText.click();
-//     await page.getByText('Configurar relación').click();
-  
-//     const selects = page.locator('select');
-//     await selects.nth(0).selectOption({ index: 0 });
-//     await selects.nth(1).selectOption({ index: 1 });
-  
-//     await page.getByRole('button', { name: 'Aceptar' }).click();
-  
-//     await expect(page.getByText('Relación', { exact: true })).toBeVisible();
-//   });
-  
-
-
-
 test('add attributes to an entity', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.mxgraph-drawing-container')).toBeVisible();
@@ -121,3 +90,63 @@ test('hide/show attributes', async ({ page }) => {
     // Check if the added attribute is shown
     await expect(page.getByText('Clave', {exact: true}).first()).toBeAttached()
 });
+
+test('generate SQL script from valid diagram', async ({ page }) => {
+    await page.goto('/');
+
+    const canvas = page.locator('.mxgraph-drawing-container');
+    await expect(canvas).toBeVisible();
+
+    const entidadIcon = page.getByTestId('icon-entidad');
+    await entidadIcon.dragTo(canvas, {targetPosition: { x: 200, y: 200 }});
+
+    await page.getByText('Entidad').first().dblclick();
+    await page.keyboard.type('Usuarios');
+    await page.keyboard.press('Enter');
+
+    await page.getByText('Usuarios').first().click();
+    await page.getByText('Añadir atributo').click();
+
+    await page.getByText('Atributo', {exact: true}).first().dblclick();
+    await page.keyboard.type('ID');
+    await canvas.click();
+
+    await page.getByText('Generar SQL').click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText('Deseas pasar a tablas el diagrama E-R?');
+
+    const aceptarBtn = page.getByRole('button', { name: 'Aceptar'});
+    await expect(aceptarBtn).toBeEnabled();
+});
+
+
+
+// test('add relations between two entities', async ({ page }) => {
+//     await page.goto('/');
+//     await expect(page.locator('.mxgraph-drawing-container')).toBeVisible();
+  
+//     const canvas = page.locator('.mxgraph-drawing-container');
+  
+//     const entidadIcon = page.getByTestId('icon-entidad');
+//     const relacionIcon = page.getByTestId('icon-relacion');
+  
+//     await entidadIcon.dragTo(canvas, { targetPosition: { x: 150, y: 150 } });
+//     await entidadIcon.dragTo(canvas, { targetPosition: { x: 450, y: 150 } });
+//     await relacionIcon.dragTo(canvas, { targetPosition: { x: 300, y: 200 } });
+  
+//     const relacionText = page.getByText('Relación', { exact: true });
+//     await expect(relacionText).toBeVisible();
+  
+//     await relacionText.click();
+//     await page.getByText('Configurar relación').click();
+  
+//     const selects = page.locator('select');
+//     await selects.nth(0).selectOption({ index: 0 });
+//     await selects.nth(1).selectOption({ index: 1 });
+  
+//     await page.getByRole('button', { name: 'Aceptar' }).click();
+  
+//     await expect(page.getByText('Relación', { exact: true })).toBeVisible();
+//   });
