@@ -121,7 +121,33 @@ test('generate SQL script from valid diagram', async ({ page }) => {
     await expect(aceptarBtn).toBeEnabled();
 });
 
+test('delete attribute from entity', async ({ page }) => {
+    await page.goto('/');
 
+    const canvas = page.locator('.mxgraph-drawing-container');
+    await expect(canvas).toBeVisible();
+
+    const entidadIcon = page.getByTestId('icon-entidad');
+    await entidadIcon.dragTo(canvas, {targetPosition: { x: 200, y: 200 }});
+
+    await page.getByText('Entidad').first().click();
+    await page.getByText('Añadir atributo').click();
+
+    await page.getByText('Entidad').first().click();
+    await page.getByText('Añadir atributo').click();
+
+    await page.waitForTimeout(500);
+
+    const atributos = page.locator('text=Atributo');
+    const ultimoAtributo = atributos.last();
+    await ultimoAtributo.click();
+
+    const deleteBtn = page.getByRole('button', { name: 'Borrar' });
+    await expect(deleteBtn).toBeVisible();
+    await deleteBtn.click();
+
+    await expect(ultimoAtributo).not.toBeVisible();
+});
 
 // test('add relations between two entities', async ({ page }) => {
 //     await page.goto('/');
