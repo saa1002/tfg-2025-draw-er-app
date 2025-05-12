@@ -169,6 +169,29 @@ test('delete entity from canvas', async({ page }) => {
     await expect(entidad).not.toBeVisible();
 });
 
+test('delete relation from canvas', async({ page }) => {
+    await page.goto('/');
+
+    const canvas = page.locator('.mxgraph-drawing-container');
+    await expect(canvas).toBeVisible();
+
+    const entidadIcon = page.getByTestId('icon-entidad');
+    const relacionIcon = page.getByTestId('icon-relacion');
+
+    await entidadIcon.dragTo(canvas, {targetPosition: { x: 200, y: 200 }});
+    await entidadIcon.dragTo(canvas, { targetPosition: { x: 400, y: 400 } });
+    await relacionIcon.dragTo(canvas, {targetPosition: { x: 500, y:500}});
+
+    const relacion = page.getByText('Relación', { exact: true }).first();
+    await expect(relacion).toBeVisible();
+    await relacion.click();
+
+    const deleteBtn = page.getByRole('button',{ name: 'Borrar'});
+    await expect(deleteBtn).toBeVisible
+    await deleteBtn.click();
+    
+    await expect(relacion).not.toBeVisible();
+});
 // test('add relations between two entities', async ({ page }) => {
 //     await page.goto('/');
 //     await expect(page.locator('.mxgraph-drawing-container')).toBeVisible();
