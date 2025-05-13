@@ -16,6 +16,7 @@ export function validateGraph(graph) {
         noWeakEntityInvalidRelationCount: true,
         noWeakEntityWrongCardinality: true,
         noWeakEntityNoDiscriminant: true,
+        noWeakEntityConnectedToNonIdentifyingRelation: true,
     };
 
     // The graph is empty
@@ -94,6 +95,11 @@ export function validateGraph(graph) {
 
     if (weakEntityNoDiscriminant(graph)) {
         diagnostics.noWeakEntityNoDiscriminant = false;
+        diagnostics.isValid = false;
+    }
+
+    if (noWeakEntityConnectedToNonIdentifyingRelation(graph)) {
+        diagnostics.noWeakEntityConnectedToNonIdentifyingRelation = false;
         diagnostics.isValid = false;
     }
 
@@ -359,6 +365,24 @@ export function weakEntityNoDiscriminant(graph) {
                 (attr) => attr.discriminant,
             );
             if (!hasDiscriminant) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// True if any weak entity is connected to non identifying relation
+export function weakEntityConnectedToNonIdentifyingRelation(graph) {
+    for (const entity of graph.entities) {
+        if (entity.isWeak) {
+            const relatedIdentifyingRelations = graph.relations.filter(
+                (rel) =>
+                    (rel.side1.entity.idMx === entity.idMx ||
+                        rel.side2.entity.idMx === entity.idMx) &&
+                    rel.isIdentifying,
+            );
+            if (relatedIdentifyingRelations.length !== 1) {
                 return true;
             }
         }
