@@ -355,13 +355,9 @@ export function weakEntityWrongCardinality(graph) {
 export function weakEntityNoDiscriminant(graph) {
     for (const entity of graph.entities) {
         if (entity.isWeak) {
-            let hasDiscriminant = false;
-            for (const attribute of entity.attributes) {
-                if (!attribute.key && /disc/i.test(attribute.name)) {
-                    hasDiscriminant = true;
-                    break;
-                }
-            }
+            const hasDiscriminant = entity.attributes.some(
+                (attr) => attr.discriminant,
+            );
             if (!hasDiscriminant) {
                 return true;
             }
