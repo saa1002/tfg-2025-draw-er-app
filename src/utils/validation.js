@@ -17,6 +17,7 @@ export function validateGraph(graph) {
         noWeakEntityWrongCardinality: true,
         noWeakEntityNoDiscriminant: true,
         noWeakEntityConnectedToNonIdentifyingRelation: true,
+        noWeakEntityRelationNotConnectedToStrong: true,
     };
 
     // The graph is empty
@@ -98,8 +99,13 @@ export function validateGraph(graph) {
         diagnostics.isValid = false;
     }
 
-    if (noWeakEntityConnectedToNonIdentifyingRelation(graph)) {
+    if (weakEntityConnectedToNonIdentifyingRelation(graph)) {
         diagnostics.noWeakEntityConnectedToNonIdentifyingRelation = false;
+        diagnostics.isValid = false;
+    }
+
+    if (weakEntityRelationNotConnectedToStrong(graph)) {
+        diagnostics.noWeakEntityRelationNotConnectedToStrong = false;
         diagnostics.isValid = false;
     }
 
@@ -214,7 +220,7 @@ export function entitiesWithMoreThanOnePK(graph) {
 export function nmRelationsWithPK(graph) {
     for (const relation of graph.relations) {
         // Check if the relation is of type N:M
-        if (relation.canHaveAttributes) {
+        if (relation.canHoldAttributes) {
             for (const attribute of relation.attributes) {
                 // If any attribute has key set to true, return true
                 if (attribute.key) {
@@ -383,6 +389,32 @@ export function weakEntityConnectedToNonIdentifyingRelation(graph) {
                     rel.isIdentifying,
             );
             if (relatedIdentifyingRelations.length !== 1) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// True if a weak entity is connected to another weak entity (identifying relation)
+export function weakEntityRelationNotConnectedToStrong(graph) {
+    for (const entity of graph.entities) {
+        if (entity.isWeak) {
+            const identifyingRelation = graph.relations.find(
+                (rel) =>
+                    (rel.side1.entity.idMx === entity.idMx ||
+                        rel.side2.entity.idMx === entity.idMx) &&
+                    rel.isIdentifying,
+            );
+            if (!identifyingRelation) continue;
+            const otherSide =
+                identifyingRelation.side1.entity.idMx === entity.idMx
+                    ? identifyingRelation.side2
+                    : identifyingRelation.side1;
+            const connectedEntity = graph.entities.find(
+                (e) => e.idMx === otherSide.entity.idMx,
+            );
+            if (connectedEntity?.isWeak) {
                 return true;
             }
         }

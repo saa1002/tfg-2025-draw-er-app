@@ -1508,11 +1508,30 @@ export default function App(props) {
                     );
                 if (!diagnostics.noInvalidRelationNames)
                     messages.push("Hay relaciones con nombres inválidos.");
+                if (!diagnostics.noWeakEntityWithPrimaryKey)
+                    messages.push(
+                        "Una entidad débil tiene clave primaria, lo cual no está permitido.",
+                    );
+                if (!diagnostics.noWeakEntityInvalidRelationCount)
+                    messages.push(
+                        "Una entidad débil debe estar conectada exactamente a una relación.",
+                    );
                 if (!diagnostics.noWeakEntityWrongCardinality)
                     messages.push(
-                        "Una entidad debil tiene cardinalidades incorrectas.",
+                        "La relación de una entidad débil no tiene las cardinalidades correctas (debe ser 0:N o 1:N hacia la entidad débil y 1:1 hacia la fuerte).",
                     );
-
+                if (!diagnostics.noWeakEntityNoDiscriminant)
+                    messages.push(
+                        "Una entidad débil debe tener un atributo discriminante.",
+                    );
+                if (!diagnostics.noWeakEntityConnectedToNonIdentifyingRelation)
+                    messages.push(
+                        "Una entidad débil está conectada a una relación que no es identificadora.",
+                    );
+                if (!diagnostics.noWeakEntityRelationNotConnectedToStrong)
+                    messages.push(
+                        "Una entidad débil está conectada a otra entidad débil. Debe estar conectada a una entidad fuerte.",
+                    );
                 setValidationMessages(messages);
             }
             setOpen(true);
@@ -1622,6 +1641,32 @@ export default function App(props) {
                 if (!diagnostics.noNotValidCardinalities)
                     messages.push(
                         "Hay cardinalidades no válidas en las relaciones.",
+                    );
+                if (!diagnostics.noInvalidRelationNames)
+                    messages.push("Hay relaciones con nombres inválidos.");
+                if (!diagnostics.noWeakEntityWithPrimaryKey)
+                    messages.push(
+                        "Una entidad débil tiene clave primaria, lo cual no está permitido.",
+                    );
+                if (!diagnostics.noWeakEntityInvalidRelationCount)
+                    messages.push(
+                        "Una entidad débil debe estar conectada exactamente a una relación.",
+                    );
+                if (!diagnostics.noWeakEntityWrongCardinality)
+                    messages.push(
+                        "La relación de una entidad débil no tiene las cardinalidades correctas (debe ser 0:N o 1:N hacia la entidad débil y 1:1 hacia la fuerte).",
+                    );
+                if (!diagnostics.noWeakEntityNoDiscriminant)
+                    messages.push(
+                        "Una entidad débil debe tener un atributo discriminante.",
+                    );
+                if (!diagnostics.noWeakEntityConnectedToNonIdentifyingRelation)
+                    messages.push(
+                        "Una entidad débil está conectada a una relación que no es identificadora.",
+                    );
+                if (!diagnostics.noWeakEntityRelationNotConnectedToStrong)
+                    messages.push(
+                        "Una entidad débil está conectada a otra entidad débil. Debe estar conectada a una entidad fuerte.",
                     );
                 setValidationMessages(messages);
             }
@@ -1748,6 +1793,38 @@ export default function App(props) {
                         if (!diagnostics.noNotValidCardinalities)
                             messages.push(
                                 "Hay cardinalidades no válidas en las relaciones.",
+                            );
+                        if (!diagnostics.noInvalidRelationNames)
+                            messages.push(
+                                "Hay relaciones con nombres inválidos.",
+                            );
+                        if (!diagnostics.noWeakEntityWithPrimaryKey)
+                            messages.push(
+                                "Una entidad débil tiene clave primaria, lo cual no está permitido.",
+                            );
+                        if (!diagnostics.noWeakEntityInvalidRelationCount)
+                            messages.push(
+                                "Una entidad débil debe estar conectada exactamente a una relación.",
+                            );
+                        if (!diagnostics.noWeakEntityWrongCardinality)
+                            messages.push(
+                                "La relación de una entidad débil no tiene las cardinalidades correctas (debe ser 0:N o 1:N hacia la entidad débil y 1:1 hacia la fuerte).",
+                            );
+                        if (!diagnostics.noWeakEntityNoDiscriminant)
+                            messages.push(
+                                "Una entidad débil debe tener un atributo discriminante.",
+                            );
+                        if (
+                            !diagnostics.noWeakEntityConnectedToNonIdentifyingRelation
+                        )
+                            messages.push(
+                                "Una entidad débil está conectada a una relación que no es identificadora.",
+                            );
+                        if (
+                            !diagnostics.noWeakEntityRelationNotConnectedToStrong
+                        )
+                            messages.push(
+                                "Una entidad débil está conectada a otra entidad débil. Debe estar conectada a una entidad fuerte.",
                             );
                         setValidationMessages(messages);
 
