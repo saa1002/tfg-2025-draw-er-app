@@ -972,8 +972,9 @@ export default function App(props) {
                                     </InputLabel>
                                     <Select
                                         id="side1"
+                                        data-testid="select-side1"
                                         value={side1}
-                                        label="Age"
+                                        label="Lado 1"
                                         onChange={handleChangeSide1}
                                     >
                                         {diagramRef.current.entities.map(
@@ -997,6 +998,7 @@ export default function App(props) {
                                     </InputLabel>
                                     <Select
                                         id="side2"
+                                        data-testid="select-side2"
                                         value={side2}
                                         label="Lado 2"
                                         onChange={handleChangeSide2}

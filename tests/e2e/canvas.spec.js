@@ -179,8 +179,8 @@ test('delete relation from canvas', async({ page }) => {
     const relacionIcon = page.getByTestId('icon-relacion');
 
     await entidadIcon.dragTo(canvas, {targetPosition: { x: 200, y: 200 }});
-    await entidadIcon.dragTo(canvas, { targetPosition: { x: 400, y: 400 } });
-    await relacionIcon.dragTo(canvas, {targetPosition: { x: 500, y:500}});
+    await entidadIcon.dragTo(canvas, { targetPosition: { x: 500, y: 500 } });
+    await relacionIcon.dragTo(canvas, {targetPosition: { x: 350, y:350}});
 
     const relacion = page.getByText('Relación', { exact: true }).first();
     await expect(relacion).toBeVisible();
@@ -192,30 +192,53 @@ test('delete relation from canvas', async({ page }) => {
     
     await expect(relacion).not.toBeVisible();
 });
-// test('add relations between two entities', async ({ page }) => {
-//     await page.goto('/');
-//     await expect(page.locator('.mxgraph-drawing-container')).toBeVisible();
-  
-//     const canvas = page.locator('.mxgraph-drawing-container');
-  
-//     const entidadIcon = page.getByTestId('icon-entidad');
-//     const relacionIcon = page.getByTestId('icon-relacion');
-  
-//     await entidadIcon.dragTo(canvas, { targetPosition: { x: 150, y: 150 } });
-//     await entidadIcon.dragTo(canvas, { targetPosition: { x: 450, y: 150 } });
-//     await relacionIcon.dragTo(canvas, { targetPosition: { x: 300, y: 200 } });
-  
-//     const relacionText = page.getByText('Relación', { exact: true });
-//     await expect(relacionText).toBeVisible();
-  
-//     await relacionText.click();
-//     await page.getByText('Configurar relación').click();
-  
-//     const selects = page.locator('select');
-//     await selects.nth(0).selectOption({ index: 0 });
-//     await selects.nth(1).selectOption({ index: 1 });
-  
-//     await page.getByRole('button', { name: 'Aceptar' }).click();
-  
-//     await expect(page.getByText('Relación', { exact: true })).toBeVisible();
-//   });
+
+test('configure relation sides between two entities', async ({ page }) => {
+    await page.goto('/');
+
+    const canvas = page.locator('.mxgraph-drawing-container');
+    await expect(canvas).toBeVisible();
+
+    const entidadIcon = page.getByTestId('icon-entidad');
+    const relacionIcon = page.getByTestId('icon-relacion');
+
+    await entidadIcon.dragTo(canvas, { targetPosition: { x: 200, y: 200 } });
+    await entidadIcon.dragTo(canvas, { targetPosition: { x: 400, y: 400 } });
+
+    const entidad1 = page.getByText('Entidad').nth(0);
+    await entidad1.dblclick();
+    await page.keyboard.type('Alumno');
+    await page.keyboard.press('Enter');
+
+    const entidad2 = page.getByText('Entidad').nth(1);
+    await entidad2.dblclick();
+    await page.keyboard.type('Curso');
+    await page.keyboard.press('Enter');
+
+    await relacionIcon.dragTo(canvas, { targetPosition: { x: 300, y: 300 } });
+
+    const relacion = canvas.locator('text', { hasText: 'Relación' }).first();
+    await expect(relacion).toBeVisible({ timeout: 5000 });
+
+    await relacion.click();
+    await page.keyboard.press('Enter');
+
+    const configurarBtn = page.getByRole('button', { name: 'Configurar relación' });
+    await expect(configurarBtn).toBeVisible({ timeout: 5000 });
+    await configurarBtn.click();
+
+    const dialog = page.getByRole('dialog', { name: 'Configurar relación' });
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+
+    await page.getByTestId('select-side1').click();
+    await page.getByRole('option', { name: 'Alumno' }).click();
+
+    await page.getByTestId('select-side2').click();
+    await page.getByRole('option', { name: 'Curso' }).click();
+
+    const aceptarBtn = page.getByRole('button', { name: 'Aceptar' });
+    await expect(aceptarBtn).toBeEnabled();
+    await aceptarBtn.click();
+
+    await expect(relacion).toBeVisible({ timeout: 2000 });
+});
