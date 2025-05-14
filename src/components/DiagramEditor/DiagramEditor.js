@@ -78,6 +78,29 @@ export default function App(props) {
         const recreateAttribute = (attribute, source) => {
             let target;
             let edge;
+            let style = [
+                "shape=ellipse",
+                "labelPosition=right",
+                "spacingRight=-40",
+                "resizable=0",
+                "fillColor=transparent",
+            ];
+
+            if (attribute.key) {
+                style.push("fontStyle=4");
+            }
+            if (attribute.discriminant) {
+                style.push(
+                    "strokeColor=#0074D9",
+                    "dashed=1",
+                    "fontColor=#0074D9",
+                    "fillColor=white",
+                    "fontStyle=0",
+                );
+            }
+
+            const styleString = style.join(";");
+
             // Recreate attribute
             target = graph.insertVertex(
                 null,
@@ -87,9 +110,7 @@ export default function App(props) {
                 attribute.position.y,
                 10,
                 10,
-                `shape=ellipse;rightLabelStyle;notResizeableStyle;transparentColor;${
-                    attribute.key ? "keyAttrStyle" : ""
-                }`,
+                styleString,
             );
             const edgeStyle = attribute.discriminant ? "dashed=1;" : "";
             edge = graph.insertEdge(
@@ -491,15 +512,27 @@ export default function App(props) {
             existingAttributes,
         );
 
-        let style =
-            "shape=ellipse;rightLabelStyle;notResizeableStyle;transparentColor";
+        let style = [
+            "shape=ellipse",
+            "labelPosition=right",
+            "spacingRight=-40",
+            "resizable=0",
+            "fillColor=transparent",
+        ];
 
         if (addPrimaryAttrRef.current.key && !isRelation) {
-            style += ";fontStyle=4";
+            style.push("fontStyle=4");
         } else if (addPrimaryAttrRef.current.discriminant) {
-            style +=
-                ";strokeColor=#0074D9;dashed=1;fontColor=#0074D9;fillColor=white;fontStyle=0";
+            style.push(
+                "strokeColor=#0074D9",
+                "dashed=1",
+                "fontColor=#0074D9",
+                "fillColor=white",
+                "fontStyle=0",
+            );
         }
+
+        const styleString = style.join(";");
 
         const target = graph.insertVertex(
             null,
@@ -509,7 +542,7 @@ export default function App(props) {
             newY,
             10,
             10,
-            style,
+            styleString,
         );
 
         const edgeStyle = addPrimaryAttrRef.current?.discriminant
