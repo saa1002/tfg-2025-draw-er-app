@@ -1,0 +1,51 @@
+{
+  "entities": [
+    {
+      "idMx": "1",
+      "name": "EntidadDebil",
+      "position": { "x": 100, "y": 100 },
+      "attributes": [
+        {
+          "idMx": "2",
+          "name": "ID",
+          "key": true,
+          "discriminant": false,
+          "position": { "x": 120, "y": 80 },
+          "cell": ["2", "3"]
+        }
+      ],
+      "isWeak": true
+    },
+    {
+      "idMx": "4",
+      "name": "OtraDebil",
+      "position": { "x": 300, "y": 100 },
+      "attributes": [],
+      "isWeak": true
+    }
+  ],
+  "relations": [
+    {
+      "idMx": "5",
+      "name": "RelacionNoIdentificadora",
+      "position": { "x": 200, "y": 100 },
+      "isIdentifying": false,
+      "canHoldAttributes": false,
+      "attributes": [],
+      "side1": {
+        "idMx": "6",
+        "cardinality": "0:N",
+        "cell": "6",
+        "edgeId": "7",
+        "entity": { "idMx": "1" }
+      },
+      "side2": {
+        "idMx": "8",
+        "cardinality": "0:N",
+        "cell": "8",
+        "edgeId": "9",
+        "entity": { "idMx": "4" }
+      }
+    }
+  ]
+}
