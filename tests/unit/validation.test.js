@@ -9,7 +9,13 @@ import {
     validateGraph, 
     cardinalitiesNotValid,
     notNMRelationsWithAttributes,
-    invalidRelationNames
+    invalidRelationNames,
+    weakEntityHasPrimaryKey,
+    weakEntityInvalidRelationCount,
+    weakEntityWrongCardinality,
+    weakEntityNoDiscriminant,
+    weakEntityConnectedToNonIdentifyingRelation,
+    weakEntityRelationNotConnectedToStrong,
 } from "../../src/utils/validation"
 
 let graph;
@@ -96,7 +102,7 @@ describe("Relations", () => {
 
     test("Cant be relations with attributes if they are not N:M", () => {
         // Ensure the graph is valid initially
-        expect(relationsUnconnected(graph)).toBe(false);
+         expect(notNMRelationsWithAttributes(graph)).toBe(false);
 
         const attributes = [
             {
@@ -163,4 +169,69 @@ describe("Invalid relation names", () => {
         expect(invalidRelationNames(graph)).toBe(true);
         expect(validateGraph(graph).noInvalidRelationNames).toBe(false);
     });
+});
+
+describe('Weak entity validations', () => {
+
+    beforeEach(() => {
+        const data = readFileSync(resolve(__dirname, './graphs/weakEntity.json'), 'utf-8');
+        graph = JSON.parse(data);
+    });
+
+    test('Weak entities must not have a primary key', () => {
+        expect(weakEntityHasPrimaryKey(graph)).toBe(false)
+        graph.entities.find(e => e.isWeak).attributes[0].key = true
+        expect(weakEntityHasPrimaryKey(graph)).toBe(true)
+        expect(validateGraph(graph).noWeakEntityWithPrimaryKey).toBe(false)
+    });
+
+    test('Weak entities must be connected to exactly one relation', () => {
+        expect(weakEntityInvalidRelationCount(graph)).toBe(false);
+        const weakEntity = graph.entities.find(e => e.isWeak);
+        const originalRelation = graph.relations.find(
+        r => r.side1.entity.idMx === weakEntity.idMx || r.side2.entity.idMx === weakEntity.idMx
+        );
+        const duplicatedRelation = JSON.parse(JSON.stringify(originalRelation));
+        duplicatedRelation.idMx = 'duplicated';
+        graph.relations.push(duplicatedRelation);
+        expect(weakEntityInvalidRelationCount(graph)).toBe(true);
+        expect(validateGraph(graph).noWeakEntityInvalidRelationCount).toBe(false);
+    });
+
+    test('Weak entity must have valid cardinality (0:N or 1:N and 1:1)', () => {
+        expect(weakEntityWrongCardinality(graph)).toBe(false);
+        const relation = graph.relations.find(r => r.isIdentifying);
+        if (relation.side1.entity.idMx === graph.entities.find(e => e.isWeak).idMx) {
+        relation.side1.cardinality = '1:1';
+        } else {
+        relation.side2.cardinality = '1:1';
+        }
+        expect(weakEntityWrongCardinality(graph)).toBe(true);
+        expect(validateGraph(graph).noWeakEntityWrongCardinality).toBe(false);
+    });
+
+    test('Weak entities must have a discriminant attribute', () => {
+        expect(weakEntityNoDiscriminant(graph)).toBe(false);
+        const weakEntity = graph.entities.find(e => e.isWeak);
+        weakEntity.attributes.forEach(attr => attr.discriminant = false);
+        expect(weakEntityNoDiscriminant(graph)).toBe(true);
+        expect(validateGraph(graph).noWeakEntityNoDiscriminant).toBe(false);
+    });
+
+    test('Weak entities must be connected to an identifying relation', () => {
+        expect(weakEntityConnectedToNonIdentifyingRelation(graph)).toBe(false);
+        const relation = graph.relations.find(r => r.isIdentifying);
+        relation.isIdentifying = false;
+        expect(weakEntityConnectedToNonIdentifyingRelation(graph)).toBe(true);
+        expect(validateGraph(graph).noWeakEntityConnectedToNonIdentifyingRelation).toBe(false);
+    });
+
+    test('Weak entities must not be connected to another weak entity in identifying relation', () => {
+        expect(weakEntityRelationNotConnectedToStrong(graph)).toBe(false);
+        const strongEntity = graph.entities.find(e => !e.isWeak);
+        strongEntity.isWeak = true;
+        expect(weakEntityRelationNotConnectedToStrong(graph)).toBe(true);
+        expect(validateGraph(graph).noWeakEntityRelationNotConnectedToStrong).toBe(false);
+    });
+
 });

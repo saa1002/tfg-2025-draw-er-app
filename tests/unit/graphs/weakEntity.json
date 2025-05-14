@@ -2,49 +2,48 @@
   "entities": [
     {
       "idMx": "1",
-      "name": "EntidadDebil",
-      "position": { "x": 100, "y": 100 },
+      "name": "Fuerte",
+      "isWeak": false,
       "attributes": [
         {
-          "idMx": "2",
-          "name": "ID",
-          "key": true,
-          "discriminant": false,
-          "position": { "x": 120, "y": 80 },
-          "cell": ["2", "3"]
+          "idMx": "a1",
+          "name": "idFuerte",
+          "key": true
         }
-      ],
-      "isWeak": true
+      ]
     },
     {
-      "idMx": "4",
-      "name": "OtraDebil",
-      "position": { "x": 300, "y": 100 },
-      "attributes": [],
-      "isWeak": true
+      "idMx": "2",
+      "name": "Debil",
+      "isWeak": true,
+      "attributes": [
+        {
+          "idMx": "a2",
+          "name": "codigo",
+          "discriminant": true,
+          "key": false
+        }
+      ]
     }
   ],
   "relations": [
     {
-      "idMx": "5",
-      "name": "RelacionNoIdentificadora",
-      "position": { "x": 200, "y": 100 },
-      "isIdentifying": false,
+      "idMx": "r1",
+      "name": "RelacionIdentificadora",
+      "isIdentifying": true,
       "canHoldAttributes": false,
       "attributes": [],
       "side1": {
-        "idMx": "6",
-        "cardinality": "0:N",
-        "cell": "6",
-        "edgeId": "7",
-        "entity": { "idMx": "1" }
+        "idMx": "s1",
+        "cardinality": "1:1",
+        "entity": { "idMx": "1" },
+        "cell": "c1"
       },
       "side2": {
-        "idMx": "8",
+        "idMx": "s2",
         "cardinality": "0:N",
-        "cell": "8",
-        "edgeId": "9",
-        "entity": { "idMx": "4" }
+        "entity": { "idMx": "2" },
+        "cell": "c2"
       }
     }
   ]
