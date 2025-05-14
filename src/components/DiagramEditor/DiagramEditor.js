@@ -504,7 +504,20 @@ export default function App(props) {
             baseAttributeName,
             existingAttributes,
         );
+        const baseStyles = [
+            "shape=ellipse",
+            "rightLabelStyle",
+            "notResizeableStyle",
+            "transparentColor",
+        ];
 
+        if (addPrimaryAttrRef.current.key && !isRelation) {
+            baseStyles.push("keyAttrStyle");
+        } else if (addPrimaryAttrRef.current.discriminant) {
+            baseStyles.push("discriminantAttrStyle");
+        }
+
+        const style = baseStyles.join(";");
         const target = graph.insertVertex(
             null,
             null,
@@ -513,13 +526,7 @@ export default function App(props) {
             newY,
             10,
             10,
-            `shape=ellipse;rightLabelStyle;notResizeableStyle;transparentColor;${
-                addPrimaryAttrRef.current.key && !isRelation
-                    ? "keyAttrStyle"
-                    : addPrimaryAttrRef.current.discriminant
-                      ? "discriminantAttrStyle"
-                      : ""
-            }`,
+            style,
         );
 
         graph.insertEdge(selected, null, null, source, target);
