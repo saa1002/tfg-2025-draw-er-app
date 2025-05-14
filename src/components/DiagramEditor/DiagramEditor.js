@@ -309,11 +309,12 @@ export default function App(props) {
                 entity.name = cellData.value;
                 entity.position.x = cellData.geometry.x;
                 entity.position.y = cellData.geometry.y;
-                entity.isWeak = graph
+                const styleString = graph
                     .getModel()
-                    .getStyle(accessCell(entity.idMx))
-                    ?.includes("weakEntityStyle");
-                updateEntityAttributes(entity);
+                    .getStyle(accessCell(entity.idMx));
+                entity.isWeak =
+                    styleString?.includes("strokeWidth=3") &&
+                    styleString?.includes("dashed=1");
             }
         });
 

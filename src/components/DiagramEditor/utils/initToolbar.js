@@ -82,11 +82,7 @@ export default function initToolbar(graph, diagramRef, tbContainer) {
         "images/db-rectangle.png",
         100,
         40,
-        getStyleStringByObj({
-            ...baseStyle,
-            [mxConstants.STYLE_STROKEWIDTH]: 3,
-            [mxConstants.STYLE_DASHED]: true,
-        }),
+        "weakEntityStyle",
         "Entidad debil",
         true, //addEntityToDiagram
         false, //addRelationToDiagram
