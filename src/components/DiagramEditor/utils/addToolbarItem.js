@@ -68,12 +68,14 @@ export default function addToolbarItem(
         graph.addCell(vertex);
         graph.setSelectionCell(vertex);
         if (addEntityToDiagram) {
+            const isActuallyWeak =
+                isWeakEntity || vertex.style?.includes("weakEntityStyle");
             diagramRef.current.entities.push({
                 idMx: vertex.id,
                 name: vertex.value,
                 position: { x: vertex.geometry.x, y: vertex.geometry.y },
                 attributes: [],
-                isWeak: isWeakEntity,
+                isWeak: isActuallyWeak,
             });
         }
         if (addRelationToDiagram) {
