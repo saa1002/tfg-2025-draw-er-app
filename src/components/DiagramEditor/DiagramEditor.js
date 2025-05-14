@@ -27,9 +27,6 @@ export default function App(props) {
     const rightLabelStyle = {};
     rightLabelStyle[mxConstants.STYLE_LABEL_POSITION] = mxConstants.ALIGN_RIGHT;
     rightLabelStyle[mxConstants.STYLE_SPACING_RIGHT] = -40; // Adjust this value to control the extra space to the right
-    // Apply font underline to the key attribute label text
-    const keyAttrStyle = {};
-    keyAttrStyle[mxConstants.STYLE_FONTSTYLE] = mxConstants.FONT_UNDERLINE;
 
     // Define a style that makes a cell non-resizable and non-movable
     const notResizeableStyle = {};
@@ -42,14 +39,6 @@ export default function App(props) {
     weakEntityStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
     weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 3;
     weakEntityStyle[mxConstants.STYLE_SPACING] = 8;
-
-    const discriminantAttrStyle = {};
-    discriminantAttrStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
-    discriminantAttrStyle[mxConstants.STYLE_STROKECOLOR] = "#0074D9";
-    discriminantAttrStyle[mxConstants.STYLE_DASHED] = 1;
-    discriminantAttrStyle[mxConstants.STYLE_FONTCOLOR] = "#0074D9";
-    discriminantAttrStyle[mxConstants.STYLE_FILLCOLOR] = "white";
-    discriminantAttrStyle[mxConstants.STYLE_FONTSTYLE] = 0;
 
     const containerRef = React.useRef(null);
     const toolbarRef = React.useRef(null);
@@ -102,12 +91,14 @@ export default function App(props) {
                     attribute.key ? "keyAttrStyle" : ""
                 }`,
             );
+            const edgeStyle = attribute.discriminant ? "dashed=1;" : "";
             edge = graph.insertEdge(
                 source,
                 String(+target.id + 1),
                 null,
                 source,
                 target,
+                edgeStyle,
             );
             graph.orderCells(true, [edge]); // Move front the selected entity so the new vertex aren't on top
         };
@@ -254,8 +245,6 @@ export default function App(props) {
             graph
                 .getStylesheet()
                 .putCellStyle("rightLabelStyle", rightLabelStyle);
-
-            graph.getStylesheet().putCellStyle("keyAttrStyle", keyAttrStyle);
             graph
                 .getStylesheet()
                 .putCellStyle("notResizeableStyle", notResizeableStyle);
@@ -265,9 +254,6 @@ export default function App(props) {
             graph
                 .getStylesheet()
                 .putCellStyle("weakEntityStyle", weakEntityStyle);
-            graph
-                .getStylesheet()
-                .putCellStyle("discriminantAttrStyle", discriminantAttrStyle);
 
             recreateGraphFromLocalStorage();
 
@@ -504,20 +490,17 @@ export default function App(props) {
             baseAttributeName,
             existingAttributes,
         );
-        const baseStyles = [
-            "shape=ellipse",
-            "rightLabelStyle",
-            "notResizeableStyle",
-            "transparentColor",
-        ];
+
+        let style =
+            "shape=ellipse;rightLabelStyle;notResizeableStyle;transparentColor";
 
         if (addPrimaryAttrRef.current.key && !isRelation) {
-            baseStyles.push("keyAttrStyle");
+            style += ";fontStyle=4";
         } else if (addPrimaryAttrRef.current.discriminant) {
-            baseStyles.push("discriminantAttrStyle");
+            style +=
+                ";strokeColor=#0074D9;dashed=1;fontColor=#0074D9;fillColor=white;fontStyle=0";
         }
 
-        const style = baseStyles.join(";");
         const target = graph.insertVertex(
             null,
             null,
@@ -529,7 +512,10 @@ export default function App(props) {
             style,
         );
 
-        graph.insertEdge(selected, null, null, source, target);
+        const edgeStyle = addPrimaryAttrRef.current?.discriminant
+            ? "dashed=1;"
+            : "";
+        graph.insertEdge(selected, null, null, source, target, edgeStyle);
         graph.orderCells(false); // Move front the selected entity so the new vertex aren't on top
 
         if (!isRelation) {
