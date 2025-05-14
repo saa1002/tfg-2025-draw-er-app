@@ -38,7 +38,13 @@ export default function App(props) {
     const weakEntityStyle = {};
     weakEntityStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
     weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 3;
+    weakEntityStyle[mxConstants.STYLE_DASHED] = 1;
     weakEntityStyle[mxConstants.STYLE_SPACING] = 8;
+    weakEntityStyle[mxConstants.STYLE_FILLCOLOR] = "#C3D9FF";
+    weakEntityStyle[mxConstants.STYLE_STROKECOLOR] = "#6482B9";
+    weakEntityStyle[mxConstants.STYLE_FONTCOLOR] = "#774400";
+    weakEntityStyle[mxConstants.STYLE_VERTICAL_ALIGN] = "middle";
+    weakEntityStyle[mxConstants.STYLE_ALIGN] = "center";
 
     const containerRef = React.useRef(null);
     const toolbarRef = React.useRef(null);
@@ -694,7 +700,11 @@ export default function App(props) {
         );
 
     const AddAttributeButton = () => {
-        if (selected?.style?.includes("shape=rectangle")) {
+        if (
+            selected &&
+            (selected.style?.includes("shape=rectangle") ||
+                selected.style === "weakEntityStyle")
+        ) {
             return (
                 <button
                     type="button"
