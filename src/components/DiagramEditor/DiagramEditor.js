@@ -43,6 +43,14 @@ export default function App(props) {
     weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 3;
     weakEntityStyle[mxConstants.STYLE_SPACING] = 8;
 
+    const discriminantAttrStyle = {};
+    discriminantAttrStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
+    discriminantAttrStyle[mxConstants.STYLE_STROKECOLOR] = "#0074D9";
+    discriminantAttrStyle[mxConstants.STYLE_DASHED] = 1;
+    discriminantAttrStyle[mxConstants.STYLE_FONTCOLOR] = "#0074D9";
+    discriminantAttrStyle[mxConstants.STYLE_FILLCOLOR] = "white";
+    discriminantAttrStyle[mxConstants.STYLE_FONTSTYLE] = 0;
+
     const containerRef = React.useRef(null);
     const toolbarRef = React.useRef(null);
 
@@ -257,6 +265,9 @@ export default function App(props) {
             graph
                 .getStylesheet()
                 .putCellStyle("weakEntityStyle", weakEntityStyle);
+            graph
+                .getStylesheet()
+                .putCellStyle("discriminantAttrStyle", discriminantAttrStyle);
 
             recreateGraphFromLocalStorage();
 
@@ -446,9 +457,9 @@ export default function App(props) {
         const isWeakEntity = accessCell(selected.id).style.includes(
             "weakEntityStyle",
         );
-        const addKey = selectedDiag?.attributes?.length === 0;
-        const isDiscriminant =
-            isWeakEntity && selectedDiag?.attributes?.length === 0;
+        const hasAttributes = selectedDiag?.attributes?.length > 0;
+        const addKey = !isWeakEntity && !hasAttributes;
+        const isDiscriminant = isWeakEntity && !hasAttributes;
         addPrimaryAttrRef.current = {
             key: addKey,
             discriminant: isDiscriminant,
@@ -505,7 +516,9 @@ export default function App(props) {
             `shape=ellipse;rightLabelStyle;notResizeableStyle;transparentColor;${
                 addPrimaryAttrRef.current.key && !isRelation
                     ? "keyAttrStyle"
-                    : ""
+                    : addPrimaryAttrRef.current.discriminant
+                      ? "discriminantAttrStyle"
+                      : ""
             }`,
         );
 
@@ -757,7 +770,13 @@ export default function App(props) {
             }
         }
 
-        if (isAttribute && !isKey && !isFromRelation) {
+        const isFromWeakEntity = diagramRef.current.entities.some(
+            (entity) =>
+                entity.isWeak &&
+                entity.attributes.some((attr) => attr.idMx === selected?.id),
+        );
+
+        if (isAttribute && !isKey && !isFromRelation && !isFromWeakEntity) {
             return (
                 <button
                     type="button"
