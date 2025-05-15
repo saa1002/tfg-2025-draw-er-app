@@ -457,7 +457,10 @@ export default function App(props) {
     const addAttribute = () => {
         let selectedDiag;
         let isRelation = false;
-        if (selected?.style?.includes("shape=rectangle")) {
+        if (
+            selected?.style?.includes("shape=rectangle") ||
+            selected?.style === "weakEntityStyle"
+        ) {
             selectedDiag = diagramRef.current.entities.find(
                 (entity) => entity.idMx === selected.id,
             );
