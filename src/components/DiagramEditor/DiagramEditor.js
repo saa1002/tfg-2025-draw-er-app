@@ -35,16 +35,42 @@ export default function App(props) {
     const transparentColor = {};
     transparentColor[mxConstants.STYLE_FILLCOLOR] = "transparent";
 
+    const strongEntityStyle = {};
+    strongEntityStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+    strongEntityStyle[mxConstants.STYLE_VERTICAL_ALIGN] = "middle";
+    strongEntityStyle[mxConstants.STYLE_ALIGN] = "center";
+    strongEntityStyle[mxConstants.STYLE_FILLCOLOR] = "#C3D9FF";
+    strongEntityStyle[mxConstants.STYLE_STROKECOLOR] = "#6482B9";
+    strongEntityStyle[mxConstants.STYLE_FONTCOLOR] = "#774400";
+
     const weakEntityStyle = {};
     weakEntityStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-    weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 3;
-    weakEntityStyle[mxConstants.STYLE_DASHED] = 1;
-    weakEntityStyle[mxConstants.STYLE_SPACING] = 8;
+    weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 2;
+    weakEntityStyle[mxConstants.STYLE_DASHED] = 0;
+    weakEntityStyle[mxConstants.STYLE_SHADOW] = 1;
+    weakEntityStyle[mxConstants.STYLE_SPACING] = 10;
     weakEntityStyle[mxConstants.STYLE_FILLCOLOR] = "#C3D9FF";
     weakEntityStyle[mxConstants.STYLE_STROKECOLOR] = "#6482B9";
     weakEntityStyle[mxConstants.STYLE_FONTCOLOR] = "#774400";
     weakEntityStyle[mxConstants.STYLE_VERTICAL_ALIGN] = "middle";
     weakEntityStyle[mxConstants.STYLE_ALIGN] = "center";
+
+    const relationStyle = {};
+    relationStyle[mxConstants.STYLE_SHAPE] = "rhombus";
+    relationStyle[mxConstants.STYLE_VERTICAL_ALIGN] = "middle";
+    relationStyle[mxConstants.STYLE_ALIGN] = "center";
+    relationStyle[mxConstants.STYLE_FILLCOLOR] = "#C3D9FF";
+    relationStyle[mxConstants.STYLE_STROKECOLOR] = "#6482B9";
+    relationStyle[mxConstants.STYLE_FONTCOLOR] = "#774400";
+
+    const identifyingRelationStyle = {};
+    identifyingRelationStyle[mxConstants.STYLE_SHAPE] = "rhombus";
+    identifyingRelationStyle[mxConstants.STYLE_VERTICAL_ALIGN] = "middle";
+    identifyingRelationStyle[mxConstants.STYLE_ALIGN] = "center";
+    identifyingRelationStyle[mxConstants.STYLE_FILLCOLOR] = "#C3D9FF";
+    identifyingRelationStyle[mxConstants.STYLE_STROKECOLOR] = "#000000";
+    identifyingRelationStyle[mxConstants.STYLE_FONTCOLOR] = "#000000";
+    identifyingRelationStyle[mxConstants.STYLE_STROKEWIDTH] = 3;
 
     const containerRef = React.useRef(null);
     const toolbarRef = React.useRef(null);
@@ -132,8 +158,7 @@ export default function App(props) {
         const recreateEntity = (entity) => {
             const style = entity.isWeak
                 ? "weakEntityStyle"
-                : "shape=rectangle;verticalAlign=middle;align=center;fillColor=#C3D9FF;strokeColor=#6482B9;fontColor=#774400";
-
+                : "strongEntityStyle";
             const source = graph.insertVertex(
                 null,
                 entity.idMx,
@@ -150,6 +175,9 @@ export default function App(props) {
         };
 
         const recreateRelation = (relation) => {
+            const style = relation.isIdentifying
+                ? "identifyingRelationStyle"
+                : "relationStyle";
             const source = graph.insertVertex(
                 null,
                 relation.idMx,
@@ -158,7 +186,7 @@ export default function App(props) {
                 relation.position.y,
                 100,
                 40,
-                ";shape=rhombus;verticalAlign=middle;align=center;fillColor=#C3D9FF;strokeColor=#6482B9;fontColor=#774400",
+                style,
             );
             for (const attribute of relation.attributes) {
                 recreateAttribute(attribute, source);
@@ -281,6 +309,16 @@ export default function App(props) {
             graph
                 .getStylesheet()
                 .putCellStyle("weakEntityStyle", weakEntityStyle);
+            graph
+                .getStylesheet()
+                .putCellStyle("strongEntityStyle", strongEntityStyle);
+            graph.getStylesheet().putCellStyle("relationStyle", relationStyle);
+            graph
+                .getStylesheet()
+                .putCellStyle(
+                    "identifyingRelationStyle",
+                    identifyingRelationStyle,
+                );
 
             recreateGraphFromLocalStorage();
 
