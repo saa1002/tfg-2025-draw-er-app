@@ -1214,8 +1214,8 @@ export default function App(props) {
 
         if (
             isRelation &&
-            selectedDiag?.side1?.entity?.idMx &&
-            selectedDiag?.side2?.entity?.idMx
+            selectedDiag?.side1?.edgeId &&
+            selectedDiag?.side2?.edgeId
         ) {
             return (
                 <>
