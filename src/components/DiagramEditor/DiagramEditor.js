@@ -101,6 +101,18 @@ export default function App(props) {
         return graph.model.cells[idMx];
     }
 
+    function updateRelationStyle(relation) {
+        const relationCell = accessCell(relation.idMx);
+        if (!relationCell) return;
+
+        const newStyle = relation.isIdentifying
+            ? "identifyingRelationStyle"
+            : "relationStyle";
+
+        relationCell.setStyle(newStyle);
+        graph.refresh();
+    }
+
     const saveToLocalStorage = () => {
         const diagramData = JSON.stringify(diagramRef.current);
         localStorage.setItem("diagramData", diagramData);
@@ -1006,6 +1018,8 @@ export default function App(props) {
                 (entity1?.isWeak && !entity2?.isWeak) ||
                 (entity2?.isWeak && !entity1?.isWeak);
 
+            updateRelationStyle(selectedDiag);
+
             if (target1 === target2) {
                 const x1 = target1.geometry.x + target1.geometry.width / 2;
                 const x2 = source.geometry.x + source.geometry.width / 2;
@@ -1173,6 +1187,7 @@ export default function App(props) {
             graph.model.setValue(label1, side1);
             graph.model.setValue(label2, side2);
 
+            updateRelationStyle(selectedDiag);
             refreshGraph();
 
             setSide1("");
