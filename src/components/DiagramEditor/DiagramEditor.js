@@ -1212,10 +1212,11 @@ export default function App(props) {
             }
         }, [side1, side2]);
 
-        if (isRelation) {
-            const isConfigured =
-                selectedDiag?.side1.idMx !== "" &&
-                selectedDiag?.side2.idMx !== "";
+        if (
+            isRelation &&
+            selectedDiag?.side1?.entity?.idMx &&
+            selectedDiag?.side2?.entity?.idMx
+        ) {
             return (
                 <>
                     <button
@@ -1225,6 +1226,7 @@ export default function App(props) {
                     >
                         Configurar cardinalidades
                     </button>
+                    ...
                     <Dialog
                         open={open}
                         onClose={handleClose}
