@@ -1033,6 +1033,8 @@ export default function App(props) {
 
             updateDiagramData();
 
+            graph.setSelectionCell(source);
+
             setOpen(false);
             setSide1("");
             setSide2("");
@@ -1197,6 +1199,8 @@ export default function App(props) {
 
             updateRelationStyle(selectedDiag);
             refreshGraph();
+
+            graph.setSelectionCell(accessCell(selectedDiag.idMx));
 
             setSide1("");
             setSide2("");
