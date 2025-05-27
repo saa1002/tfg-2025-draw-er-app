@@ -772,7 +772,7 @@ export default function App(props) {
 
     const RelationAddAttributeButton = () => {
         if (
-            graph?.getModel()?.getStyle(selected)?.includes("shape=rhombus") &&
+            selected?.style?.includes("shape=rhombus") &&
             diagramRef.current.relations.find(
                 (entity) => entity.idMx === selected?.id,
             )?.canHoldAttributes
@@ -792,7 +792,7 @@ export default function App(props) {
     const ToggleAttributesButton = () => {
         const isEntity = selected?.style?.includes("shape=rectangle");
         const isRelationNM =
-            graph?.getModel()?.getStyle(selected)?.includes("shape=rhombus") &&
+            selected?.style?.includes("shape=rhombus") &&
             diagramRef.current.relations.find(
                 (entity) => entity.idMx === selected?.id,
             )?.canHoldAttributes;
@@ -880,10 +880,7 @@ export default function App(props) {
     };
 
     const RelationConfigurationButton = () => {
-        const isRelation = graph
-            ?.getModel()
-            ?.getStyle(selected)
-            ?.includes("shape=rhombus");
+        const isRelation = selected?.style?.includes("shape=rhombus");
         const [open, setOpen] = React.useState(false);
         const [acceptDisabled, setAcceptDisabled] = React.useState(true);
 
@@ -1152,10 +1149,7 @@ export default function App(props) {
     };
 
     const RelationCardinalitiesButton = () => {
-        const isRelation = graph
-            ?.getModel()
-            ?.getStyle(selected)
-            ?.includes("shape=rhombus");
+        const isRelation = selected?.style?.includes("shape=rhombus");
         const selectedDiag = diagramRef.current.relations.find(
             (entity) => entity.idMx === selected?.id,
         );
@@ -1545,11 +1539,7 @@ export default function App(props) {
     };
 
     const DeleteRelationButton = () => {
-        const isRelation = graph
-            ?.getModel()
-            ?.getStyle(selected)
-            ?.includes("shape=rhombus");
-
+        const isRelation = selected?.style?.includes("shape=rhombus");
         function deleteRelation() {
             // Find the relation in diagramRef.current.relations
             const relationIndex = diagramRef.current.relations.findIndex(
