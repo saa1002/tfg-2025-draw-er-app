@@ -1214,11 +1214,11 @@ export default function App(props) {
             }
         }, [side1, side2]);
 
-        if (
-            isRelation &&
-            selectedDiag?.side1?.entity?.idMx &&
-            selectedDiag?.side2?.entity?.idMx
-        ) {
+        const isConfigured =
+            selectedDiag?.side1?.entity?.idMx !== "" &&
+            selectedDiag?.side2?.entity?.idMx !== "";
+
+        if (isRelation && isConfigured) {
             return (
                 <>
                     <button
