@@ -1157,11 +1157,17 @@ export default function App(props) {
         const [acceptDisabled, setAcceptDisabled] = React.useState(true);
 
         const handleClickOpen = () => {
+            setSide1("");
+            setSide2("");
+            setAcceptDisabled(true);
             setOpen(true);
         };
 
         const handleClose = () => {
             setOpen(false);
+            setSide1("");
+            setSide2("");
+            setAcceptDisabled(true);
         };
 
         const handleAccept = () => {
@@ -1214,11 +1220,10 @@ export default function App(props) {
             }
         }, [side1, side2]);
 
-        const isConfigured =
-            selectedDiag?.side1?.entity?.idMx !== "" &&
-            selectedDiag?.side2?.entity?.idMx !== "";
-
-        if (isRelation && isConfigured) {
+        if (isRelation) {
+            const isConfigured =
+                selectedDiag?.side1?.entity?.idMx !== "" &&
+                selectedDiag?.side2?.entity?.idMx !== "";
             return (
                 <>
                     <button
