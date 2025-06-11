@@ -176,25 +176,19 @@ export function repeatedAttributesInEntity(graph) {
     return false; // No repeated attributes found in any entity or N:M relation
 }
 
-// False if every entity has at least a key
-// True if there is an entity that hasn't a key
 export function entitiesWithoutPK(graph) {
     // Check entities
     for (const entity of graph.entities) {
-        let hasPrimaryKey = false;
-        for (const attribute of entity.attributes) {
-            // Check if there is at least one attribute with key set to true
-            if (attribute.key) {
-                hasPrimaryKey = true;
-                break;
-            }
-        }
-        // If no primary key found for the current entity, return true
-        if (!hasPrimaryKey) {
-            return true;
+        if (!entity.isWeak) {
+            const hasPK = entity.attributes.some((attr) => attr.key);
+            if (!hasPK) return true;
+        } else {
+            const hasDiscriminant = entity.attributes.some(
+                (attr) => attr.discriminant,
+            );
+            if (!hasDiscriminant) return true;
         }
     }
-    // If all entities have at least one primary key, return false
     return false;
 }
 
