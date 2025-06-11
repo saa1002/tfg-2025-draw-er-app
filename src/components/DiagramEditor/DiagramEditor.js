@@ -50,11 +50,10 @@ export default function App(props) {
 
     const discriminantAttrStyle = {};
     discriminantAttrStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
-    discriminantAttrStyle[mxConstants.STYLE_STROKECOLOR] = "black";
     discriminantAttrStyle[mxConstants.STYLE_DASHED] = 1;
-    discriminantAttrStyle[mxConstants.STYLE_FONTCOLOR] = "black";
     discriminantAttrStyle[mxConstants.STYLE_FILLCOLOR] = "white";
-    discriminantAttrStyle[mxConstants.STYLE_FONTSTYLE] = 0;
+    discriminantAttrStyle[mxConstants.STYLE_FONTSTYLE] =
+        mxConstants.FONT_ITALIC;
 
     const containerRef = React.useRef(null);
     const toolbarRef = React.useRef(null);
@@ -117,8 +116,11 @@ export default function App(props) {
             graph.orderCells(true, [edge]); // Move front the selected entity so the new vertex aren't on top
         };
         const recreateEntity = (entity) => {
+            let background = null;
+
             if (entity.isWeak) {
-                graph.insertVertex(
+                // Dibuja el fondo del doble rectángulo
+                background = graph.insertVertex(
                     null,
                     null,
                     null,
@@ -126,9 +128,10 @@ export default function App(props) {
                     entity.position.y - 4,
                     108,
                     48,
-                    "shape=rectangle;strokeColor=#00796B;fillColor=none;strokeWidth=1;",
+                    "shape=rectangle;strokeColor=black;fillColor=none;strokeWidth=1;",
                 );
             }
+
             const style = entity.isWeak
                 ? "weakEntityStyle"
                 : "shape=rectangle;verticalAlign=middle;align=center;fillColor=#C3D9FF;strokeColor=#6482B9;fontColor=#774400";
@@ -143,6 +146,12 @@ export default function App(props) {
                 40,
                 style,
             );
+
+            if (background) {
+                // Asegura que el rectángulo de fondo quede detrás
+                graph.orderCells(true, [source]); // mueve 'source' al frente
+            }
+
             for (const attribute of entity.attributes) {
                 recreateAttribute(attribute, source);
             }
