@@ -318,10 +318,6 @@ export default function App(props) {
                 entity.name = cellData.value;
                 entity.position.x = cellData.geometry.x;
                 entity.position.y = cellData.geometry.y;
-                entity.isWeak = accessCell(entity.idMx).style.includes(
-                    "weakEntityStyle",
-                );
-
                 updateEntityAttributes(entity);
             }
         });
@@ -470,9 +466,9 @@ export default function App(props) {
             isRelation = true;
         }
 
-        const isWeakEntity = accessCell(selected.id).style.includes(
-            "weakEntityStyle",
-        );
+        const isWeakEntity = diagramRef.current.entities.find(
+            (e) => e.idMx === selected.id,
+        )?.isWeak;
         const hasAttributes = selectedDiag?.attributes?.length > 0;
         const addKey = !isWeakEntity && !hasAttributes;
         const isDiscriminant = isWeakEntity && !hasAttributes;
