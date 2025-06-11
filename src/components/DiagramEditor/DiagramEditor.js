@@ -40,8 +40,12 @@ export default function App(props) {
 
     const weakEntityStyle = {};
     weakEntityStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-    weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 3;
-    weakEntityStyle[mxConstants.STYLE_SPACING] = 8;
+    weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 2;
+    weakEntityStyle[mxConstants.STYLE_STROKECOLOR] = "#00796B";
+    weakEntityStyle[mxConstants.STYLE_FILLCOLOR] = "#E0F7FA";
+    weakEntityStyle[mxConstants.STYLE_FONTCOLOR] = "#004D40";
+    weakEntityStyle[mxConstants.STYLE_ROUNDED] = true;
+    weakEntityStyle[mxConstants.STYLE_SHADOW] = 1;
 
     const discriminantAttrStyle = {};
     discriminantAttrStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
@@ -112,6 +116,18 @@ export default function App(props) {
             graph.orderCells(true, [edge]); // Move front the selected entity so the new vertex aren't on top
         };
         const recreateEntity = (entity) => {
+            if (entity.isWeak) {
+                graph.insertVertex(
+                    null,
+                    null,
+                    null,
+                    entity.position.x - 4,
+                    entity.position.y - 4,
+                    108,
+                    48,
+                    "shape=rectangle;strokeColor=#00796B;fillColor=none;strokeWidth=1;",
+                );
+            }
             const style = entity.isWeak
                 ? "weakEntityStyle"
                 : "shape=rectangle;verticalAlign=middle;align=center;fillColor=#C3D9FF;strokeColor=#6482B9;fontColor=#774400";
