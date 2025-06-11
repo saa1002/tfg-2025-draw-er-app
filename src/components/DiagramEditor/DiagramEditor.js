@@ -477,9 +477,17 @@ export default function App(props) {
             (attr) => attr.discriminant,
         );
 
+        const shouldBePrimaryKey =
+            !isRelation &&
+            !isWeakEntity &&
+            selectedDiag.attributes.length === 0;
+
+        const shouldBeDiscriminant =
+            !isRelation && isWeakEntity && selectedDiag.attributes.length === 0;
+
         addPrimaryAttrRef.current = {
-            key: !isWeakEntity && !hasPrimaryKey,
-            discriminant: isWeakEntity && !hasDiscriminant,
+            key: shouldBePrimaryKey,
+            discriminant: shouldBeDiscriminant,
         };
 
         const source = selected;
