@@ -42,9 +42,7 @@ export default function App(props) {
     weakEntityStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
     weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 1.5;
     weakEntityStyle[mxConstants.STYLE_DASHED] = 1;
-    weakEntityStyle[mxConstants.STYLE_STROKECOLOR] = "black";
     weakEntityStyle[mxConstants.STYLE_FILLCOLOR] = "#C3D9FF";
-    weakEntityStyle[mxConstants.STYLE_FONTCOLOR] = "black";
     weakEntityStyle[mxConstants.STYLE_ROUNDED] = false;
     weakEntityStyle[mxConstants.STYLE_SHADOW] = 0;
 
