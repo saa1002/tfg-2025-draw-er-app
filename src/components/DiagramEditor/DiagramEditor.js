@@ -40,18 +40,19 @@ export default function App(props) {
 
     const weakEntityStyle = {};
     weakEntityStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-    weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 3;
+    weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 1.5;
+    weakEntityStyle[mxConstants.STYLE_DASHED] = 1;
     weakEntityStyle[mxConstants.STYLE_STROKECOLOR] = "black";
-    weakEntityStyle[mxConstants.STYLE_FILLCOLOR] = "white";
+    weakEntityStyle[mxConstants.STYLE_FILLCOLOR] = "#C3D9FF";
     weakEntityStyle[mxConstants.STYLE_FONTCOLOR] = "black";
     weakEntityStyle[mxConstants.STYLE_ROUNDED] = false;
     weakEntityStyle[mxConstants.STYLE_SHADOW] = 0;
 
     const discriminantAttrStyle = {};
     discriminantAttrStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
-    discriminantAttrStyle[mxConstants.STYLE_STROKECOLOR] = "#0074D9";
+    discriminantAttrStyle[mxConstants.STYLE_STROKECOLOR] = "black";
     discriminantAttrStyle[mxConstants.STYLE_DASHED] = 1;
-    discriminantAttrStyle[mxConstants.STYLE_FONTCOLOR] = "#0074D9";
+    discriminantAttrStyle[mxConstants.STYLE_FONTCOLOR] = "black";
     discriminantAttrStyle[mxConstants.STYLE_FILLCOLOR] = "white";
     discriminantAttrStyle[mxConstants.STYLE_FONTSTYLE] = 0;
 
