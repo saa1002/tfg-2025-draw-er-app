@@ -470,13 +470,18 @@ export default function App(props) {
         const isWeakEntity = diagramRef.current.entities.find(
             (e) => e.idMx === selected.id,
         )?.isWeak;
-        const hasAttributes = selectedDiag?.attributes?.length > 0;
-        const addKey = !isWeakEntity && !hasAttributes;
-        const isDiscriminant = isWeakEntity && !hasAttributes;
+        const hasPrimaryKey = selectedDiag?.attributes?.some(
+            (attr) => attr.key,
+        );
+        const hasDiscriminant = selectedDiag?.attributes?.some(
+            (attr) => attr.discriminant,
+        );
+
         addPrimaryAttrRef.current = {
-            key: addKey,
-            discriminant: isDiscriminant,
+            key: !isWeakEntity && !hasPrimaryKey,
+            discriminant: isWeakEntity && !hasDiscriminant,
         };
+
         const source = selected;
 
         // Initial offset
