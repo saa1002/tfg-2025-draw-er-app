@@ -40,12 +40,12 @@ export default function App(props) {
 
     const weakEntityStyle = {};
     weakEntityStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-    weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 2;
-    weakEntityStyle[mxConstants.STYLE_STROKECOLOR] = "#00796B";
-    weakEntityStyle[mxConstants.STYLE_FILLCOLOR] = "#E0F7FA";
-    weakEntityStyle[mxConstants.STYLE_FONTCOLOR] = "#004D40";
-    weakEntityStyle[mxConstants.STYLE_ROUNDED] = true;
-    weakEntityStyle[mxConstants.STYLE_SHADOW] = 1;
+    weakEntityStyle[mxConstants.STYLE_STROKEWIDTH] = 3;
+    weakEntityStyle[mxConstants.STYLE_STROKECOLOR] = "black";
+    weakEntityStyle[mxConstants.STYLE_FILLCOLOR] = "white";
+    weakEntityStyle[mxConstants.STYLE_FONTCOLOR] = "black";
+    weakEntityStyle[mxConstants.STYLE_ROUNDED] = false;
+    weakEntityStyle[mxConstants.STYLE_SHADOW] = 0;
 
     const discriminantAttrStyle = {};
     discriminantAttrStyle[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
